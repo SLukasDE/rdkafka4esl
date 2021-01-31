@@ -1,11 +1,17 @@
 # Prerequisites
 *.d
 
+# IDE files
+.cproject
+.project
+.settings
+
 # Compiled Object files
 *.slo
 *.lo
 *.o
 *.obj
+build
 
 # Precompiled Headers
 *.gch
