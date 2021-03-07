@@ -23,12 +23,55 @@ std::unique_ptr<esl::messaging::Interface::Client> Client::create(const std::str
 	return std::unique_ptr<esl::messaging::Interface::Client>(new Client(brokers, settings));
 }
 
-Client::Client(const std::string& aBrokers, const esl::object::Values<std::string>& aSettings)
+Client::Client(const std::string& brokers, const esl::object::Values<std::string>& aSettings)
 : esl::messaging::Interface::Client(),
-  brokers(aBrokers),
   settings(aSettings.getValues()),
   consumer(*this)
-{ }
+{
+	bool hasGroupId = false;
+	bool hasBrokers = false;
+
+	for(auto& setting : settings) {
+		if(setting.first == "group.id") {
+			if(setting.second.empty()) {
+				continue;
+			}
+			hasGroupId = true;
+		}
+		else if(setting.first == "bootstrap.servers") {
+			if(setting.second.empty()) {
+				if(brokers.empty()) {
+					continue;
+				}
+			}
+			else if(setting.second != brokers) {
+				logger.warn << "Overwriting \"bootstrap.servers\"=\"" << setting.second << "\" with value from brokers=\"" << brokers << "\".\n";
+			}
+
+			setting.second = brokers;
+			hasBrokers = true;
+		}
+	}
+
+	if(!hasBrokers && !brokers.empty()) {
+		settings.emplace_back("bootstrap.servers", brokers);
+		hasBrokers = true;
+	}
+
+	if(!hasGroupId) {
+		logger.warn << "Value \"group.id\" not specified.\n";
+	}
+	if(!hasBrokers) {
+		logger.warn << "Value \"bootstrap.servers\" not specified.\n";
+	}
+
+
+	logger.debug << "Begin show settings:\n";
+	for(const auto& setting : settings) {
+		logger.debug << "- \"" << setting.first << "\"=\"" << setting.second << "\"\n";
+	}
+	logger.debug << "End show settings.\n";
+}
 
 Client::~Client() {
 	consumerStop();
@@ -122,14 +165,19 @@ rd_kafka_conf_t& Client::createConfig() const {
 		throw esl::addStacktrace(std::runtime_error(errstr));
 	}
 
-	if(!brokers.empty()) {
-		if(rd_kafka_conf_set(rdKafkaConfig, "bootstrap.servers", brokers.c_str()/*"localhost:9092"*/, errstr, sizeof(errstr)) != RD_KAFKA_CONF_OK) {
-			throw esl::addStacktrace(std::runtime_error(errstr));
-		}
+	/*
+	brokers = "localhost:9092";
+	if(rd_kafka_conf_set(rdKafkaConfig, "bootstrap.servers", brokers.c_str(), errstr, sizeof(errstr)) != RD_KAFKA_CONF_OK) {
+		throw esl::addStacktrace(std::runtime_error(errstr));
 	}
-
 	if(rd_kafka_conf_set(rdKafkaConfig, "group.id", "foo", errstr, sizeof(errstr)) != RD_KAFKA_CONF_OK) {
 		throw esl::addStacktrace(std::runtime_error(errstr));
+	}
+	*/
+	for(const auto& setting : settings) {
+		if(rd_kafka_conf_set(rdKafkaConfig, setting.first.c_str(), setting.second.c_str(), errstr, sizeof(errstr)) != RD_KAFKA_CONF_OK) {
+			throw esl::addStacktrace(std::runtime_error(errstr));
+		}
 	}
 
 	return *rdKafkaConfig;

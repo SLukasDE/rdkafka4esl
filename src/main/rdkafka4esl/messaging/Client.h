@@ -46,7 +46,6 @@ private:
 	friend class Producer;
 	friend class ProducerFactory;
 
-	std::string brokers;
 	std::vector<std::pair<std::string, std::string>> settings;
 
 	/* ****************** *
