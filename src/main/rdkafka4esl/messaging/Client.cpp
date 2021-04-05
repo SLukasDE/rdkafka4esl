@@ -6,6 +6,7 @@
 #include <rdkafka4esl/messaging/MessageReader.h>
 #include <rdkafka4esl/messaging/Logger.h>
 
+#include <esl/io/Consumer.h>
 #include <esl/Stacktrace.h>
 
 #include <string>
@@ -16,7 +17,7 @@ namespace rdkafka4esl {
 namespace messaging {
 
 namespace {
-Logger logger("kafka4esl::messaging::Client");
+Logger logger("rdkafka4esl::messaging::Client");
 }
 
 std::unique_ptr<esl::messaging::Interface::Client> Client::create(const std::string& brokers, const esl::object::Values<std::string>& settings) {
@@ -420,13 +421,13 @@ void Client::consumerMessageHandlerThread(rd_kafka_message_t& rdKafkaMessage, es
 	MessageContext messageContext(message, *this);
 
 	{
-		std::unique_ptr<esl::utility::Consumer> messageHandler = createMessageHandler(messageContext);
+		std::unique_ptr<esl::io::Consumer> messageHandler = createMessageHandler(messageContext);
 
 		if(messageHandler) {
 			try {
 				while(true) {
-					std::size_t size = messageHandler->read(message.getReader());
-					if(size == esl::utility::Reader::npos) {
+					bool success = messageHandler->consume(message.getReader());
+					if(success == false) {
 						break;
 					}
 				}

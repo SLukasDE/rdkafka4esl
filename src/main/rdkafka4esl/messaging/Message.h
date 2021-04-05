@@ -4,7 +4,7 @@
 #include <rdkafka4esl/messaging/MessageReader.h>
 
 #include <esl/messaging/Message.h>
-#include <esl/utility/Reader.h>
+#include <esl/io/Reader.h>
 
 #include <string>
 #include <cstdint>
@@ -20,7 +20,7 @@ public:
 
 	std::string getValue(const std::string& key) const override;
 
-	esl::utility::Reader& getReader() override;
+	esl::io::Reader& getReader() override;
 
 	std::int64_t getOffset() const noexcept;
 	std::int32_t getPartition() const noexcept;

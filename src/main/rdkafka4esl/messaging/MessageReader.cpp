@@ -18,7 +18,7 @@ MessageReader::MessageReader(const Message& aMessage)
 
 std::size_t MessageReader::read(void* data, std::size_t size) {
 	if(getSizeReadable() == 0) {
-		return esl::utility::Reader::npos;
+		return esl::io::Reader::npos;
 	}
 
 	if(size > getSizeReadable()) {
@@ -37,6 +37,14 @@ std::size_t MessageReader::getSizeReadable() const {
 		return 0;
 	}
 	return message.getPayloadLength() - pos;
+}
+
+bool MessageReader::hasSize() const {
+	return true;
+}
+
+std::size_t MessageReader::getSize() const {
+	return message.getPayloadLength();
 }
 
 } /* namespace messaging */

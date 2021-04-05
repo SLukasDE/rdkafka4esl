@@ -1,7 +1,7 @@
 #ifndef RDKAFKA4ESL_MESSAGING_MESSAGEREADER_H_
 #define RDKAFKA4ESL_MESSAGING_MESSAGEREADER_H_
 
-#include <esl/utility/Reader.h>
+#include <esl/io/Reader.h>
 
 #include <string>
 
@@ -10,15 +10,15 @@ namespace messaging {
 
 class Message;
 
-class MessageReader : public esl::utility::Reader {
+class MessageReader : public esl::io::Reader {
 public:
 	MessageReader(const Message& message);
 
 	std::size_t read(void* data, std::size_t size) override;
 
-	// returns available bytes to read.
-	// npos is returned if available size is unknown.
 	std::size_t getSizeReadable() const override;
+	bool hasSize() const override;
+	std::size_t getSize() const override;
 
 private:
 	const Message& message;

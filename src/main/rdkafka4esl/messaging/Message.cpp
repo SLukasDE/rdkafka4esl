@@ -36,7 +36,7 @@ std::string Message::getValue(const std::string& key) const {
 	return esl::messaging::Message::getValue(key);
 }
 
-esl::utility::Reader& Message::getReader() {
+esl::io::Reader& Message::getReader() {
 	return reader;
 }
 

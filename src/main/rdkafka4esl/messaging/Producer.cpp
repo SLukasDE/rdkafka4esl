@@ -10,7 +10,7 @@ namespace rdkafka4esl {
 namespace messaging {
 
 namespace {
-Logger logger("kafka4esl::messaging::Producer");
+Logger logger("rdkafka4esl::messaging::Producer");
 }
 
 Producer::Producer(Client& aClient, const std::string& aId, rd_kafka_t& aProducerRdKafkaHandle, rd_kafka_topic_t& aRdKafkaTopic, const std::vector<std::pair<std::string, std::string>>& parameters)
