@@ -2,6 +2,7 @@
 #define RDKAFKA4ESL_MODULE_H_
 
 #include <esl/module/Module.h>
+
 #include <string>
 
 namespace rdkafka4esl {
