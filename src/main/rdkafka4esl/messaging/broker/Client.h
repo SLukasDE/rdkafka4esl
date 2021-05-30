@@ -5,7 +5,7 @@
 #include <rdkafka4esl/messaging/server/Socket.h>
 
 #include <esl/messaging/broker/Interface.h>
-#include <esl/messaging/server/messagehandler/Interface.h>
+#include <esl/messaging/server/requesthandler/Interface.h>
 
 #include <cstdint>
 #include <utility>
@@ -35,7 +35,7 @@ public:
 
 	esl::messaging::server::Interface::Socket& getSocket() override;
 
-	void socketListen(const std::set<std::string>& notifications, esl::messaging::server::messagehandler::Interface::CreateMessageHandler createMessageHandler);
+	void socketListen(const std::set<std::string>& notifications, esl::messaging::server::requesthandler::Interface::CreateInput createInput);
 	void socketRelease();
 	bool socketWait(std::uint32_t ms);
 	bool consumerIsStateNotRunning() const;
@@ -84,14 +84,14 @@ private:
 
 	bool producerIsEmpty();
 
-	void consumerStartThread(const std::set<std::string>& queues, esl::messaging::server::messagehandler::Interface::CreateMessageHandler createMessageHandler);
+	void consumerStartThread(const std::set<std::string>& queues, esl::messaging::server::requesthandler::Interface::CreateInput createInput);
 
 	//void consumerInit(const std::set<std::string>& queues);
 	//void consumerRelease();
 
 	bool consumerIsThreadAvailable() const;
 	bool consumerIsNoThreadRunning() const;
-	void consumerMessageHandlerThread(rd_kafka_message_t& rdKafkaMessage, esl::messaging::server::messagehandler::Interface::CreateMessageHandler createMessageHandler);
+	void consumerMessageHandlerThread(rd_kafka_message_t& rdKafkaMessage, esl::messaging::server::requesthandler::Interface::CreateInput createInput);
 };
 
 } /* namespace broker */

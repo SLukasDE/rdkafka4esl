@@ -27,8 +27,8 @@ Socket::ObjectFactory Socket::getObjectFactory(const std::string& id) const {
 	return nullptr;
 }
 
-void Socket::listen(const std::set<std::string>& notifications, esl::messaging::server::messagehandler::Interface::CreateMessageHandler createMessageHandler) {
-	client.socketListen(notifications, createMessageHandler);
+void Socket::listen(const std::set<std::string>& notifications, esl::messaging::server::requesthandler::Interface::CreateInput createInput) {
+	client.socketListen(notifications, createInput);
 }
 
 void Socket::release() {

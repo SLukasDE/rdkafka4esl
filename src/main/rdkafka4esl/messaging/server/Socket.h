@@ -2,7 +2,7 @@
 #define RDKAFKA4ESL_MESSAGING_SERVER_SOCKET_H_
 
 #include <esl/messaging/server/Interface.h>
-#include <esl/messaging/server/messagehandler/Interface.h>
+#include <esl/messaging/server/requesthandler/Interface.h>
 
 #include <set>
 #include <string>
@@ -25,7 +25,7 @@ public:
 	void addObjectFactory(const std::string& id, ObjectFactory objectFactory) override;
 	ObjectFactory getObjectFactory(const std::string& id) const;
 
-	void listen(const std::set<std::string>& notifications, esl::messaging::server::messagehandler::Interface::CreateMessageHandler createMessageHandler) override;
+	void listen(const std::set<std::string>& notifications, esl::messaging::server::requesthandler::Interface::CreateInput createInput) override;
 	void release() override;
 	bool wait(std::uint32_t ms) override;
 

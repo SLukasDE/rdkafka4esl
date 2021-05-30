@@ -1,5 +1,5 @@
 #include <rdkafka4esl/messaging/broker/Client.h>
-#include <rdkafka4esl/messaging/server/MessageContext.h>
+#include <rdkafka4esl/messaging/server/RequestContext.h>
 #include <rdkafka4esl/messaging/Logger.h>
 
 #include <esl/io/Consumer.h>
@@ -89,7 +89,7 @@ esl::messaging::server::Interface::Socket& Client::getSocket() {
 	return socket;
 }
 
-void Client::socketListen(const std::set<std::string>& notifications, esl::messaging::server::messagehandler::Interface::CreateMessageHandler createMessageHandler) {
+void Client::socketListen(const std::set<std::string>& notifications, esl::messaging::server::requesthandler::Interface::CreateInput createInput) {
 	if(notifications.empty()) {
 		return;
 	}
@@ -103,8 +103,8 @@ void Client::socketListen(const std::set<std::string>& notifications, esl::messa
 		consumerState = CSRunning;
 	}
 
-	std::thread consumerThread([this, notifications, createMessageHandler]{
-		consumerStartThread(notifications, createMessageHandler);
+	std::thread consumerThread([this, notifications, createInput]{
+		consumerStartThread(notifications, createInput);
 	});
 	consumerThread.detach();
 }
@@ -248,7 +248,7 @@ bool Client::producerIsEmpty() {
 	return producerCount == 0;
 }
 
-void Client::consumerStartThread(const std::set<std::string>& notifications, esl::messaging::server::messagehandler::Interface::CreateMessageHandler createMessageHandler) {
+void Client::consumerStartThread(const std::set<std::string>& notifications, esl::messaging::server::requesthandler::Interface::CreateInput createInput) {
 	/* ************** *
 	 * Initialization *
 	 * ************** */
@@ -358,8 +358,8 @@ void Client::consumerStartThread(const std::set<std::string>& notifications, esl
 
 
 		++consumerThreadsRunning;
-		std::thread consumerThread([this, rdKafkaMessage, createMessageHandler]{
-			consumerMessageHandlerThread(*rdKafkaMessage, createMessageHandler);
+		std::thread consumerThread([this, rdKafkaMessage, createInput]{
+			consumerMessageHandlerThread(*rdKafkaMessage, createInput);
 		});
 		consumerThread.detach();
 
@@ -412,9 +412,9 @@ bool Client::consumerIsNoThreadRunning() const {
 	return consumerThreadsRunning == 0;
 }
 
-void Client::consumerMessageHandlerThread(rd_kafka_message_t& rdKafkaMessage, esl::messaging::server::messagehandler::Interface::CreateMessageHandler createMessageHandler) {
-	server::MessageContext messageContext(*this, rdKafkaMessage);
-	esl::io::Input messageHandler = createMessageHandler(messageContext);
+void Client::consumerMessageHandlerThread(rd_kafka_message_t& rdKafkaMessage, esl::messaging::server::requesthandler::Interface::CreateInput createInput) {
+	server::RequestContext requestContext(*this, rdKafkaMessage);
+	esl::io::Input messageHandler = createInput(requestContext);
 
 	if(messageHandler) {
 		try {
