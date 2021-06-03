@@ -1,5 +1,5 @@
-#ifndef RDKAFKA4ESL_MESSAGING_SERVER_REQUEST_H_
-#define RDKAFKA4ESL_MESSAGING_SERVER_REQUEST_H_
+#ifndef RDKAFKA4ESL_COM_BASIC_SERVER_REQUEST_H_
+#define RDKAFKA4ESL_COM_BASIC_SERVER_REQUEST_H_
 
 #include <esl/object/Values.h>
 
@@ -10,7 +10,8 @@
 #include <librdkafka/rdkafka.h>
 
 namespace rdkafka4esl {
-namespace messaging {
+namespace com {
+namespace basic {
 namespace server {
 
 class Request : public esl::object::Values<std::string> {
@@ -28,7 +29,8 @@ private:
 };
 
 } /* namespace server */
-} /* namespace messaging */
+} /* namespace basic */
+} /* namespace com */
 } /* namespace rdkafka4esl */
 
-#endif /* RDKAFKA4ESL_MESSAGING_SERVER_REQUEST_H_ */
+#endif /* RDKAFKA4ESL_COM_BASIC_SERVER_REQUEST_H_ */

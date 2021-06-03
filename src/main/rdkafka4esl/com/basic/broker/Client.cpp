@@ -1,6 +1,6 @@
-#include <rdkafka4esl/messaging/broker/Client.h>
-#include <rdkafka4esl/messaging/server/RequestContext.h>
-#include <rdkafka4esl/messaging/Logger.h>
+#include <rdkafka4esl/com/basic/broker/Client.h>
+#include <rdkafka4esl/com/basic/server/RequestContext.h>
+#include <rdkafka4esl/Logger.h>
 
 #include <esl/io/Consumer.h>
 #include <esl/Stacktrace.h>
@@ -10,15 +10,16 @@
 #include <stdexcept>
 
 namespace rdkafka4esl {
-namespace messaging {
+namespace com {
+namespace basic {
 namespace broker {
 
 namespace {
-Logger logger("rdkafka4esl::messaging::broker::Client");
+Logger logger("rdkafka4esl::com::basic::broker::Client");
 }
 
-std::unique_ptr<esl::messaging::broker::Interface::Client> Client::create(const std::string& brokers, const esl::object::Values<std::string>& settings) {
-	return std::unique_ptr<esl::messaging::broker::Interface::Client>(new Client(brokers, settings));
+std::unique_ptr<esl::com::basic::broker::Interface::Client> Client::create(const std::string& brokers, const esl::object::Values<std::string>& settings) {
+	return std::unique_ptr<esl::com::basic::broker::Interface::Client>(new Client(brokers, settings));
 }
 
 Client::Client(const std::string& brokers, const esl::object::Values<std::string>& aSettings)
@@ -85,11 +86,11 @@ Client::~Client() {
 	socketWait(0);
 }
 
-esl::messaging::server::Interface::Socket& Client::getSocket() {
+esl::com::basic::server::Interface::Socket& Client::getSocket() {
 	return socket;
 }
 
-void Client::socketListen(const std::set<std::string>& notifications, esl::messaging::server::requesthandler::Interface::CreateInput createInput) {
+void Client::socketListen(const std::set<std::string>& notifications, esl::com::basic::server::requesthandler::Interface::CreateInput createInput) {
 	if(notifications.empty()) {
 		return;
 	}
@@ -136,8 +137,8 @@ bool Client::consumerIsStateNotRunning() const {
 	return consumerState == CSNotRunning;
 }
 
-std::unique_ptr<esl::messaging::client::Interface::Connection> Client::createConnection(std::vector<std::pair<std::string, std::string>> parameters) {
-//std::unique_ptr<esl::messaging::Producer> Client::createProducer(const std::string& id, std::vector<std::pair<std::string, std::string>> parameter) {
+std::unique_ptr<esl::com::basic::client::Interface::Connection> Client::createConnection(std::vector<std::pair<std::string, std::string>> parameters) {
+//std::unique_ptr<esl::com::basic::Producer> Client::createProducer(const std::string& id, std::vector<std::pair<std::string, std::string>> parameter) {
 	char errstr[512];
 	rd_kafka_t* producerRdKafkaHandle = nullptr;
 	rd_kafka_topic_conf_t* rdKafkaTopicConfig = nullptr;
@@ -191,7 +192,7 @@ std::unique_ptr<esl::messaging::client::Interface::Connection> Client::createCon
 		throw esl::addStacktrace(std::runtime_error("rd_kafka_topic_new failed for topic \"" + topicName + "\""));
 	}
 
-	return std::unique_ptr<esl::messaging::client::Interface::Connection>(new client::Connection(*this, *producerRdKafkaHandle, *rdKafkaTopic, parameters));
+	return std::unique_ptr<esl::com::basic::client::Interface::Connection>(new client::Connection(*this, *producerRdKafkaHandle, *rdKafkaTopic, parameters));
 }
 
 void Client::connectionRegister() {
@@ -248,7 +249,7 @@ bool Client::producerIsEmpty() {
 	return producerCount == 0;
 }
 
-void Client::consumerStartThread(const std::set<std::string>& notifications, esl::messaging::server::requesthandler::Interface::CreateInput createInput) {
+void Client::consumerStartThread(const std::set<std::string>& notifications, esl::com::basic::server::requesthandler::Interface::CreateInput createInput) {
 	/* ************** *
 	 * Initialization *
 	 * ************** */
@@ -412,7 +413,7 @@ bool Client::consumerIsNoThreadRunning() const {
 	return consumerThreadsRunning == 0;
 }
 
-void Client::consumerMessageHandlerThread(rd_kafka_message_t& rdKafkaMessage, esl::messaging::server::requesthandler::Interface::CreateInput createInput) {
+void Client::consumerMessageHandlerThread(rd_kafka_message_t& rdKafkaMessage, esl::com::basic::server::requesthandler::Interface::CreateInput createInput) {
 	server::RequestContext requestContext(*this, rdKafkaMessage);
 	esl::io::Input messageHandler = createInput(requestContext);
 
@@ -444,5 +445,6 @@ void Client::consumerMessageHandlerThread(rd_kafka_message_t& rdKafkaMessage, es
 }
 
 } /* namespace broker */
-} /* namespace messaging */
+} /* namespace basic */
+} /* namespace com */
 } /* namespace rdkafka4esl */

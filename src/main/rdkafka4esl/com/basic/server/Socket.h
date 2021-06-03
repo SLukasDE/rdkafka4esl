@@ -1,8 +1,8 @@
-#ifndef RDKAFKA4ESL_MESSAGING_SERVER_SOCKET_H_
-#define RDKAFKA4ESL_MESSAGING_SERVER_SOCKET_H_
+#ifndef RDKAFKA4ESL_COM_BASIC_SERVER_SOCKET_H_
+#define RDKAFKA4ESL_COM_BASIC_SERVER_SOCKET_H_
 
-#include <esl/messaging/server/Interface.h>
-#include <esl/messaging/server/requesthandler/Interface.h>
+#include <esl/com/basic/server/Interface.h>
+#include <esl/com/basic/server/requesthandler/Interface.h>
 
 #include <set>
 #include <string>
@@ -10,7 +10,8 @@
 #include <map>
 
 namespace rdkafka4esl {
-namespace messaging {
+namespace com {
+namespace basic {
 
 namespace broker {
 class Client;
@@ -18,14 +19,14 @@ class Client;
 
 namespace server {
 
-class Socket final : public esl::messaging::server::Interface::Socket {
+class Socket final : public esl::com::basic::server::Interface::Socket {
 public:
 	Socket(broker::Client& client);
 
 	void addObjectFactory(const std::string& id, ObjectFactory objectFactory) override;
 	ObjectFactory getObjectFactory(const std::string& id) const;
 
-	void listen(const std::set<std::string>& notifications, esl::messaging::server::requesthandler::Interface::CreateInput createInput) override;
+	void listen(const std::set<std::string>& notifications, esl::com::basic::server::requesthandler::Interface::CreateInput createInput) override;
 	void release() override;
 	bool wait(std::uint32_t ms) override;
 
@@ -36,7 +37,8 @@ private:
 };
 
 } /* namespace server */
-} /* namespace messaging */
+} /* namespace basic */
+} /* namespace com */
 } /* namespace rdkafka4esl */
 
-#endif /* RDKAFKA4ESL_MESSAGING_SERVER_SOCKET_H_ */
+#endif /* RDKAFKA4ESL_COM_BASIC_SERVER_SOCKET_H_ */

@@ -1,7 +1,8 @@
-#include <rdkafka4esl/messaging/server/Request.h>
+#include <rdkafka4esl/com/basic/server/Request.h>
 
 namespace rdkafka4esl {
-namespace messaging {
+namespace com {
+namespace basic {
 namespace server {
 
 namespace {
@@ -81,5 +82,6 @@ const std::vector<std::pair<std::string, std::string>>& Request::getValues() con
 }
 
 } /* namespace server */
-} /* namespace messaging */
+} /* namespace basic */
+} /* namespace com */
 } /* namespace rdkafka4esl */

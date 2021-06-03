@@ -1,7 +1,7 @@
 #include <rdkafka4esl/Module.h>
-#include <rdkafka4esl/messaging/broker/Client.h>
+#include <rdkafka4esl/com/basic/broker/Client.h>
 
-#include <esl/messaging/broker/Interface.h>
+#include <esl/com/basic/broker/Interface.h>
 #include <esl/module/Interface.h>
 #include <esl/Stacktrace.h>
 
@@ -27,8 +27,8 @@ Module::Module()
 {
 	esl::module::Module::initialize(*this);
 
-	addInterface(std::unique_ptr<const esl::module::Interface>(new esl::messaging::broker::Interface(
-			getId(), messaging::broker::Client::getImplementation(), &messaging::broker::Client::create)));
+	addInterface(std::unique_ptr<const esl::module::Interface>(new esl::com::basic::broker::Interface(
+			getId(), com::basic::broker::Client::getImplementation(), &com::basic::broker::Client::create)));
 }
 
 } /* anonymous namespace */

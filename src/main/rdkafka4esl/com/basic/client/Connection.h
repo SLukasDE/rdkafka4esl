@@ -1,7 +1,7 @@
-#ifndef RDKAFKA4ESL_MESSAGING_CLIENT_CONNECTION_H_
-#define RDKAFKA4ESL_MESSAGING_CLIENT_CONNECTION_H_
+#ifndef RDKAFKA4ESL_COM_BASIC_CLIENT_CONNECTION_H_
+#define RDKAFKA4ESL_COM_BASIC_CLIENT_CONNECTION_H_
 
-#include <esl/messaging/client/Interface.h>
+#include <esl/com/basic/client/Interface.h>
 #include <esl/io/Output.h>
 
 #include <vector>
@@ -12,7 +12,8 @@
 #include <librdkafka/rdkafka.h>
 
 namespace rdkafka4esl {
-namespace messaging {
+namespace com {
+namespace basic {
 
 namespace broker {
 class Client;
@@ -20,12 +21,12 @@ class Client;
 
 namespace client {
 
-class Connection final : public esl::messaging::client::Interface::Connection {
+class Connection final : public esl::com::basic::client::Interface::Connection {
 public:
 	Connection(broker::Client& client, rd_kafka_t& producerRdKafkaHandle, rd_kafka_topic_t& rdKafkaTopic, const std::vector<std::pair<std::string, std::string>>& parameters);
 	~Connection();
 
-	esl::io::Output sendMessage(esl::io::Output output, std::vector<std::pair<std::string, std::string>> parameters) override;
+	esl::io::Output send(esl::io::Output output, std::vector<std::pair<std::string, std::string>> parameters) override;
 
 	void flush();// override;
 	bool wait(std::uint32_t ms);// override;
@@ -42,7 +43,8 @@ private:
 };
 
 } /* namespace client */
-} /* namespace messaging */
+} /* namespace basic */
+} /* namespace com */
 } /* namespace rdkafka4esl */
 
-#endif /* RDKAFKA4ESL_MESSAGING_CLIENT_CONNECTION_H_ */
+#endif /* RDKAFKA4ESL_COM_BASIC_CLIENT_CONNECTION_H_ */

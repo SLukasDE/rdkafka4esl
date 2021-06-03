@@ -1,10 +1,11 @@
-#include <rdkafka4esl/messaging/server/Socket.h>
-#include <rdkafka4esl/messaging/broker/Client.h>
+#include <rdkafka4esl/com/basic/server/Socket.h>
+#include <rdkafka4esl/com/basic/broker/Client.h>
 
 #include <esl/Stacktrace.h>
 
 namespace rdkafka4esl {
-namespace messaging {
+namespace com {
+namespace basic {
 namespace server {
 
 Socket::Socket(broker::Client& aClient)
@@ -27,7 +28,7 @@ Socket::ObjectFactory Socket::getObjectFactory(const std::string& id) const {
 	return nullptr;
 }
 
-void Socket::listen(const std::set<std::string>& notifications, esl::messaging::server::requesthandler::Interface::CreateInput createInput) {
+void Socket::listen(const std::set<std::string>& notifications, esl::com::basic::server::requesthandler::Interface::CreateInput createInput) {
 	client.socketListen(notifications, createInput);
 }
 
@@ -40,5 +41,6 @@ bool Socket::wait(std::uint32_t ms) {
 }
 
 } /* namespace server */
-} /* namespace messaging */
+} /* namespace basic */
+} /* namespace com */
 } /* namespace rdkafka4esl */

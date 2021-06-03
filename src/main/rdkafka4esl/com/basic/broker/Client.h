@@ -1,11 +1,11 @@
-#ifndef RDKAFKA4ESL_MESSAGING_BROKER_CLIENT_H_
-#define RDKAFKA4ESL_MESSAGING_BROKER_CLIENT_H_
+#ifndef RDKAFKA4ESL_COM_BASIC_BROKER_CLIENT_H_
+#define RDKAFKA4ESL_COM_BASIC_BROKER_CLIENT_H_
 
-#include <rdkafka4esl/messaging/client/Connection.h>
-#include <rdkafka4esl/messaging/server/Socket.h>
+#include <rdkafka4esl/com/basic/client/Connection.h>
+#include <rdkafka4esl/com/basic/server/Socket.h>
 
-#include <esl/messaging/broker/Interface.h>
-#include <esl/messaging/server/requesthandler/Interface.h>
+#include <esl/com/basic/broker/Interface.h>
+#include <esl/com/basic/server/requesthandler/Interface.h>
 
 #include <cstdint>
 #include <utility>
@@ -19,28 +19,29 @@
 #include <librdkafka/rdkafka.h>
 
 namespace rdkafka4esl {
-namespace messaging {
+namespace com {
+namespace basic {
 namespace broker {
 
-class Client final : public esl::messaging::broker::Interface::Client {
+class Client final : public esl::com::basic::broker::Interface::Client {
 public:
 	static inline const char* getImplementation() {
 		return "rdkafka4esl";
 	}
 
-	static std::unique_ptr<esl::messaging::broker::Interface::Client> create(const std::string& brokers, const esl::object::Values<std::string>& settings);
+	static std::unique_ptr<esl::com::basic::broker::Interface::Client> create(const std::string& brokers, const esl::object::Values<std::string>& settings);
 
 	Client(const std::string& brokers, const esl::object::Values<std::string>& settings);
 	~Client();
 
-	esl::messaging::server::Interface::Socket& getSocket() override;
+	esl::com::basic::server::Interface::Socket& getSocket() override;
 
-	void socketListen(const std::set<std::string>& notifications, esl::messaging::server::requesthandler::Interface::CreateInput createInput);
+	void socketListen(const std::set<std::string>& notifications, esl::com::basic::server::requesthandler::Interface::CreateInput createInput);
 	void socketRelease();
 	bool socketWait(std::uint32_t ms);
 	bool consumerIsStateNotRunning() const;
 
-	std::unique_ptr<esl::messaging::client::Interface::Connection> createConnection(std::vector<std::pair<std::string, std::string>> parameters) override;
+	std::unique_ptr<esl::com::basic::client::Interface::Connection> createConnection(std::vector<std::pair<std::string, std::string>> parameters) override;
 	void connectionRegister();
 	void connectionUnregister();
 
@@ -84,18 +85,19 @@ private:
 
 	bool producerIsEmpty();
 
-	void consumerStartThread(const std::set<std::string>& queues, esl::messaging::server::requesthandler::Interface::CreateInput createInput);
+	void consumerStartThread(const std::set<std::string>& queues, esl::com::basic::server::requesthandler::Interface::CreateInput createInput);
 
 	//void consumerInit(const std::set<std::string>& queues);
 	//void consumerRelease();
 
 	bool consumerIsThreadAvailable() const;
 	bool consumerIsNoThreadRunning() const;
-	void consumerMessageHandlerThread(rd_kafka_message_t& rdKafkaMessage, esl::messaging::server::requesthandler::Interface::CreateInput createInput);
+	void consumerMessageHandlerThread(rd_kafka_message_t& rdKafkaMessage, esl::com::basic::server::requesthandler::Interface::CreateInput createInput);
 };
 
 } /* namespace broker */
-} /* namespace messaging */
+} /* namespace basic */
+} /* namespace com */
 } /* namespace rdkafka4esl */
 
-#endif /* RDKAFKA4ESL_MESSAGING_BROKER_CLIENT_H_ */
+#endif /* RDKAFKA4ESL_COM_BASIC_BROKER_CLIENT_H_ */

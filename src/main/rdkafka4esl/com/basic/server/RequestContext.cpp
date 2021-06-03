@@ -1,8 +1,9 @@
-#include <rdkafka4esl/messaging/server/RequestContext.h>
-#include <rdkafka4esl/messaging/server/Connection.h>
+#include <rdkafka4esl/com/basic/server/RequestContext.h>
+#include <rdkafka4esl/com/basic/server/Connection.h>
 
 namespace rdkafka4esl {
-namespace messaging {
+namespace com {
+namespace basic {
 namespace server {
 
 namespace {
@@ -14,7 +15,7 @@ RequestContext::RequestContext(const Socket& aSocket, rd_kafka_message_t& kafkaM
   request(kafkaMessage)
 { }
 
-esl::messaging::server::Connection& RequestContext::getConnection() const {
+esl::com::basic::server::Connection& RequestContext::getConnection() const {
 	return connection;
 }
 
@@ -23,7 +24,7 @@ const Request& RequestContext::getRequest() const {
 }
 
 esl::object::Interface::Object* RequestContext::findObject(const std::string& id) const {
-	esl::messaging::server::Interface::Socket::ObjectFactory objectFactory = socket.getObjectFactory(id);
+	esl::com::basic::server::Interface::Socket::ObjectFactory objectFactory = socket.getObjectFactory(id);
 	if(objectFactory) {
 		return objectFactory(*this);
 	}
@@ -31,5 +32,6 @@ esl::object::Interface::Object* RequestContext::findObject(const std::string& id
 }
 
 } /* namespace server */
-} /* namespace messaging */
+} /* namespace basic */
+} /* namespace com */
 } /* namespace rdkafka4esl */

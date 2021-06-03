@@ -1,6 +1,6 @@
-#include <rdkafka4esl/messaging/client/Connection.h>
-#include <rdkafka4esl/messaging/broker/Client.h>
-#include <rdkafka4esl/messaging/Logger.h>
+#include <rdkafka4esl/com/basic/client/Connection.h>
+#include <rdkafka4esl/com/basic/broker/Client.h>
+#include <rdkafka4esl/Logger.h>
 
 #include <esl/io/Producer.h>
 #include <esl/io/Writer.h>
@@ -9,10 +9,11 @@
 #include <stdexcept>
 
 namespace rdkafka4esl {
-namespace messaging {
+namespace com {
+namespace basic {
 namespace client {
 namespace {
-Logger logger("rdkafka4esl::messaging::client::Connection");
+Logger logger("rdkafka4esl::com::basic::client::Connection");
 
 class ToStringWriter : public esl::io::Writer {
 public:
@@ -79,7 +80,7 @@ Connection::~Connection() {
 	client.connectionUnregister();
 }
 
-esl::io::Output Connection::sendMessage(esl::io::Output output, std::vector<std::pair<std::string, std::string>> parameters) {
+esl::io::Output Connection::send(esl::io::Output output, std::vector<std::pair<std::string, std::string>> parameters) {
 	if(!output) {
 		return esl::io::Output();
 	}
@@ -161,5 +162,6 @@ bool Connection::wait(std::uint32_t ms) {
 }
 
 } /* namespace client */
-} /* namespace messaging */
+} /* namespace basic */
+} /* namespace com */
 } /* namespace rdkafka4esl */
