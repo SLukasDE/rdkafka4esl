@@ -30,24 +30,15 @@ Client::Client(const std::string& brokers, const esl::object::Values<std::string
 	bool hasBrokers = false;
 
 	for(auto& setting : settings) {
-		if(setting.first == "kafka.group.id") {
-			if(setting.second.empty()) {
-				continue;
+		if(setting.first.size() > 6 && setting.first.substr(0, 6) == "kafka.") {
+			std::string kafkaKey = setting.first.substr(6);
+			if(kafkaKey == "group.id") {
+				hasGroupId = true;
 			}
-			hasGroupId = true;
-		}
-		else if(setting.first == "kafka.bootstrap.servers") {
-			if(setting.second.empty()) {
-				if(brokers.empty()) {
-					continue;
-				}
+			else if(kafkaKey == "bootstrap.servers") {
+				hasBrokers = true;
 			}
-			else if(setting.second != brokers) {
-				logger.warn << "Overwriting \"bootstrap.servers\"=\"" << setting.second << "\" with value from brokers=\"" << brokers << "\".\n";
-			}
-
-			setting.second = brokers;
-			hasBrokers = true;
+			settings.emplace_back(setting.first, setting.second);
 		}
 		else if(setting.first == "threads") {
 			consumerThreadsMax = static_cast<std::uint16_t>(std::stoul(setting.second));
