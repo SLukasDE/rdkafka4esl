@@ -8,6 +8,7 @@
 #include <string>
 #include <map>
 #include <stdexcept>
+#include <iostream>
 
 namespace rdkafka4esl {
 namespace com {
@@ -23,13 +24,12 @@ std::unique_ptr<esl::com::basic::broker::Interface::Client> Client::create(const
 }
 
 Client::Client(const std::string& brokers, const esl::object::Values<std::string>& aSettings)
-: settings(aSettings.getValues()),
-  socket(*this)
+: socket(*this)
 {
 	bool hasGroupId = false;
 	bool hasBrokers = false;
 
-	for(auto& setting : settings) {
+	for(auto& setting : aSettings.getValues()) {
 		if(setting.first.size() > 6 && setting.first.substr(0, 6) == "kafka.") {
 			std::string kafkaKey = setting.first.substr(6);
 			if(kafkaKey == "group.id") {
@@ -38,7 +38,7 @@ Client::Client(const std::string& brokers, const esl::object::Values<std::string
 			else if(kafkaKey == "bootstrap.servers") {
 				hasBrokers = true;
 			}
-			settings.emplace_back(setting.first, setting.second);
+			settings.emplace_back(kafkaKey, setting.second);
 		}
 		else if(setting.first == "threads") {
 			consumerThreadsMax = static_cast<std::uint16_t>(std::stoul(setting.second));
@@ -49,7 +49,7 @@ Client::Client(const std::string& brokers, const esl::object::Values<std::string
 	}
 
 	if(!hasBrokers && !brokers.empty()) {
-		settings.emplace_back("kafka.bootstrap.servers", brokers);
+		settings.emplace_back("bootstrap.servers", brokers);
 		hasBrokers = true;
 	}
 
@@ -129,32 +129,54 @@ bool Client::consumerIsStateNotRunning() const {
 }
 
 std::unique_ptr<esl::com::basic::client::Interface::Connection> Client::createConnection(std::vector<std::pair<std::string, std::string>> parameters) {
-//std::unique_ptr<esl::com::basic::Producer> Client::createProducer(const std::string& id, std::vector<std::pair<std::string, std::string>> parameter) {
+	std::string topicName;
+	bool hasTopicName = false;
+	bool hasAcks = false;
+
+	std::vector<std::pair<std::string, std::string>> topicParameters;
+	for(auto& parameter : parameters) {
+		if(parameter.first.size() > 6 && parameter.first.substr(0, 6) == "kafka.") {
+			std::string kafkaKey = parameter.first.substr(6);
+			if(kafkaKey == "acks") {
+				hasAcks = true;
+			}
+			topicParameters.emplace_back(kafkaKey, parameter.second);
+		}
+		else if(parameter.first == "topic") {
+			topicName = parameter.second;
+			hasTopicName = true;
+		}
+		else {
+			throw esl::addStacktrace(std::runtime_error("Unknown parameter \"" + parameter.first + "\" = \"" + parameter.second  + "\""));
+		}
+	}
+
+	if(hasTopicName == false) {
+		throw esl::addStacktrace(std::runtime_error("Parameter \"topic\" is missing"));
+	}
+	if(hasAcks == false) {
+		topicParameters.emplace_back("acks", "all");
+	}
+
+
 	char errstr[512];
 	rd_kafka_t* producerRdKafkaHandle = nullptr;
 	rd_kafka_topic_conf_t* rdKafkaTopicConfig = nullptr;
 	rd_kafka_topic_t* rdKafkaTopic = nullptr;
-	std::string topicName;
 
-	{
-		bool hasTopicName = false;
-		for(auto& parameter : parameters) {
-			if(parameter.first == "topic") {
-				topicName = parameter.second;
-				hasTopicName = true;
-				break;
-			}
-		}
-		if(hasTopicName == false) {
-			throw esl::addStacktrace(std::runtime_error("Parameter \"topic\" is missing"));
-		}
-	}
+	/* *************************
+	 * Create Producer Handle
+	 * *************************/
 
-	/* Create Kafka producer handle */
 	producerRdKafkaHandle = rd_kafka_new(RD_KAFKA_PRODUCER, &createConfig(), errstr, sizeof(errstr));
 	if(producerRdKafkaHandle == nullptr) {
-		throw esl::addStacktrace(std::runtime_error(errstr));
+		throw esl::addStacktrace(std::runtime_error(std::string("rd_kafka_new(RD_KAFKA_PRODUCER, ...) failed: ") + errstr));
 	}
+
+
+	/* *************************
+	 * Create Topic Config
+	 * *************************/
 
 	rdKafkaTopicConfig = rd_kafka_topic_conf_new();
 	if(rdKafkaTopicConfig == nullptr) {
@@ -164,14 +186,20 @@ std::unique_ptr<esl::com::basic::client::Interface::Connection> Client::createCo
 		throw esl::addStacktrace(std::runtime_error("rd_kafka_topic_conf_new() failed"));
 	}
 
-	if(rd_kafka_topic_conf_set(rdKafkaTopicConfig, "acks", "all", errstr, sizeof(errstr)) != RD_KAFKA_CONF_OK) {
-		rd_kafka_topic_conf_destroy(rdKafkaTopicConfig);
+	for(const auto& topicParameter : topicParameters) {
+		if(rd_kafka_topic_conf_set(rdKafkaTopicConfig, topicParameter.first.c_str(), topicParameter.second.c_str(), errstr, sizeof(errstr)) != RD_KAFKA_CONF_OK) {
+			rd_kafka_topic_conf_destroy(rdKafkaTopicConfig);
 
-		/* Destroy handle object */
-		rd_kafka_destroy(producerRdKafkaHandle);
+			/* Destroy handle object */
+			rd_kafka_destroy(producerRdKafkaHandle);
 
-		throw esl::addStacktrace(std::runtime_error(errstr));
+			throw esl::addStacktrace(std::runtime_error(errstr));
+		}
 	}
+
+	/* *************************
+	 * Create Topic Handle
+	 * *************************/
 
 	rdKafkaTopic = rd_kafka_topic_new(producerRdKafkaHandle, topicName.c_str(), rdKafkaTopicConfig);
 	if(rdKafkaTopic == nullptr) {
