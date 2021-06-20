@@ -101,7 +101,11 @@ esl::io::Output Connection::send(esl::io::Output output, std::vector<std::pair<s
 	esl::io::Producer& producer = output.getProducer();
 	while(producer.produce(toStringWriter) != esl::io::Writer::npos){}
 
-	int rc = rd_kafka_produce(&rdKafkaTopic, partition, RD_KAFKA_MSG_F_COPY, const_cast<char*>(toStringWriter.getString().data()), toStringWriter.getString().size(), key.c_str(), key.size(), nullptr);
+	const char* keyPtr = key.c_str();
+	if(key.empty()) {
+		keyPtr = nullptr;
+	}
+	int rc = rd_kafka_produce(&rdKafkaTopic, partition, RD_KAFKA_MSG_F_COPY, const_cast<char*>(toStringWriter.getString().data()), toStringWriter.getString().size(), keyPtr, key.size(), nullptr);
 
 	if(rc == -1) {
 		switch(errno) {
