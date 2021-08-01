@@ -1,7 +1,8 @@
 #ifndef RDKAFKA4ESL_COM_BASIC_SERVER_REQUEST_H_
 #define RDKAFKA4ESL_COM_BASIC_SERVER_REQUEST_H_
 
-#include <esl/object/Values.h>
+//#include <esl/object/Values.h>
+#include <esl/com/basic/server/Request.h>
 
 #include <vector>
 #include <string>
@@ -14,7 +15,8 @@ namespace com {
 namespace basic {
 namespace server {
 
-class Request : public esl::object::Values<std::string> {
+//class Request : public esl::object::Values<std::string> {
+class Request : public esl::com::basic::server::Request {
 public:
 	Request(rd_kafka_message_t& kafkaMessage);
 
