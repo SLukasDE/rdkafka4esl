@@ -6,6 +6,7 @@
 
 #include <esl/com/basic/broker/Interface.h>
 #include <esl/com/basic/server/requesthandler/Interface.h>
+#include <esl/object/Interface.h>
 
 #include <cstdint>
 #include <utility>
@@ -29,9 +30,9 @@ public:
 		return "rdkafka4esl";
 	}
 
-	static std::unique_ptr<esl::com::basic::broker::Interface::Client> create(const std::string& brokers, const esl::object::Values<std::string>& settings);
+	static std::unique_ptr<esl::com::basic::broker::Interface::Client> create(const esl::object::Interface::Settings& settings);
 
-	Client(const std::string& brokers, const esl::object::Values<std::string>& settings);
+	Client(const esl::object::Interface::Settings& settings);
 	~Client();
 
 	esl::com::basic::server::Interface::Socket& getSocket() override;
@@ -41,7 +42,7 @@ public:
 	bool socketWait(std::uint32_t ms);
 	bool consumerIsStateNotRunning() const;
 
-	std::unique_ptr<esl::com::basic::client::Interface::Connection> createConnection(std::vector<std::pair<std::string, std::string>> parameters) override;
+	std::unique_ptr<esl::com::basic::client::Interface::Connection> createConnection(const esl::com::basic::broker::Interface::Settings& parameters) override;
 	void connectionRegister();
 	void connectionUnregister();
 
