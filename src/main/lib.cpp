@@ -1,6 +1,9 @@
-#include <esl/module/Library.h>
 #include <rdkafka4esl/Module.h>
 
-extern "C" esl::module::Module* esl__module__library__getModule(const std::string& moduleName) {
-	return &rdkafka4esl::getModule();
+#include <esl/module/Module.h>
+
+extern "C" void esl__module__library__install(esl::module::Module* module) {
+	if(module != nullptr) {
+		rdkafka4esl::Module::install(*module);
+	}
 }
