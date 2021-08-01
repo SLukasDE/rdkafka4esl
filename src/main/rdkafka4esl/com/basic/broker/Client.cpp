@@ -19,24 +19,20 @@ namespace {
 Logger logger("rdkafka4esl::com::basic::broker::Client");
 }
 
-std::unique_ptr<esl::com::basic::broker::Interface::Client> Client::create(const std::string& brokers, const esl::object::Values<std::string>& settings) {
-	return std::unique_ptr<esl::com::basic::broker::Interface::Client>(new Client(brokers, settings));
+std::unique_ptr<esl::com::basic::broker::Interface::Client> Client::create(const esl::object::Interface::Settings& settings) {
+	return std::unique_ptr<esl::com::basic::broker::Interface::Client>(new Client(settings));
 }
 
-Client::Client(const std::string& brokers, const esl::object::Values<std::string>& aSettings)
+Client::Client(const esl::object::Interface::Settings& aSettings)
 : socket(*this)
 {
 	bool hasGroupId = false;
-	bool hasBrokers = false;
 
-	for(auto& setting : aSettings.getValues()) {
+	for(auto& setting : aSettings) {
 		if(setting.first.size() > 6 && setting.first.substr(0, 6) == "kafka.") {
 			std::string kafkaKey = setting.first.substr(6);
 			if(kafkaKey == "group.id") {
 				hasGroupId = true;
-			}
-			else if(kafkaKey == "bootstrap.servers") {
-				hasBrokers = true;
 			}
 			settings.emplace_back(kafkaKey, setting.second);
 		}
@@ -48,18 +44,9 @@ Client::Client(const std::string& brokers, const esl::object::Values<std::string
 		}
 	}
 
-	if(!hasBrokers && !brokers.empty()) {
-		settings.emplace_back("bootstrap.servers", brokers);
-		hasBrokers = true;
-	}
-
 	if(!hasGroupId) {
-		logger.warn << "Value \"group.id\" not specified.\n";
+		throw esl::addStacktrace(std::runtime_error("Value \"group.id\" not specified."));
 	}
-	if(!hasBrokers) {
-		logger.warn << "Value \"bootstrap.servers\" not specified.\n";
-	}
-
 
 	logger.debug << "Begin show settings:\n";
 	for(const auto& setting : settings) {
@@ -128,7 +115,7 @@ bool Client::consumerIsStateNotRunning() const {
 	return consumerState == CSNotRunning;
 }
 
-std::unique_ptr<esl::com::basic::client::Interface::Connection> Client::createConnection(std::vector<std::pair<std::string, std::string>> parameters) {
+std::unique_ptr<esl::com::basic::client::Interface::Connection> Client::createConnection(const esl::com::basic::broker::Interface::Settings& parameters) {
 	std::string topicName;
 	bool hasTopicName = false;
 	bool hasAcks = false;
