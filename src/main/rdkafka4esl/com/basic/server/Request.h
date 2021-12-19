@@ -1,7 +1,6 @@
 #ifndef RDKAFKA4ESL_COM_BASIC_SERVER_REQUEST_H_
 #define RDKAFKA4ESL_COM_BASIC_SERVER_REQUEST_H_
 
-//#include <esl/object/Values.h>
 #include <esl/com/basic/server/Request.h>
 
 #include <vector>

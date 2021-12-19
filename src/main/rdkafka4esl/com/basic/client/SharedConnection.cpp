@@ -1,15 +1,13 @@
-#include <rdkafka4esl/com/basic/client/Connection.h>
+#include <rdkafka4esl/com/basic/client/SharedConnection.h>
+//#include <rdkafka4esl/com/basic/client/Connection.h>
+#include <rdkafka4esl/com/basic/client/SharedConnectionFactory.h>
 #include <rdkafka4esl/Logger.h>
-
-#if 0
-#include <rdkafka4esl/com/basic/client/ConnectionFactory.h>
 
 #include <esl/io/Producer.h>
 #include <esl/io/Writer.h>
 #include <esl/Stacktrace.h>
 
 #include <stdexcept>
-#endif
 
 namespace rdkafka4esl {
 namespace com {
@@ -17,25 +15,8 @@ namespace basic {
 namespace client {
 
 namespace {
-Logger logger("rdkafka4esl::com::basic::client::Connection");
-}
+Logger logger("rdkafka4esl::com::basic::broker::client::SharedConnection");
 
-#if 1
-Connection::Connection(std::shared_ptr<SharedConnection> aSharedConnection)
-: sharedConnection(aSharedConnection)
-{ }
-
-esl::com::basic::client::Response Connection::send(const esl::com::basic::client::Request& request, esl::io::Output output, esl::com::basic::client::Interface::CreateInput createInput) const {
-	sharedConnection->send(request, std::move(output));
-	return esl::com::basic::client::Response();
-}
-
-esl::com::basic::client::Response Connection::send(const esl::com::basic::client::Request& request, esl::io::Output output, esl::io::Input input) const {
-	sharedConnection->send(request, std::move(output));
-	return esl::com::basic::client::Response();
-}
-#else
-namespace {
 class ToStringWriter : public esl::io::Writer {
 public:
 	std::size_t write(const void* data, std::size_t size) override;
@@ -72,38 +53,41 @@ const std::string ToStringWriter::getString() const noexcept {
 
 }
 
-Connection::Connection(const ConnectionFactory& aConnectionFactory, rd_kafka_t& aProducerRdKafkaHandle, rd_kafka_topic_t& aRdKafkaTopic, const std::string& aTopicName, const std::string& aDefaultKey, std::int32_t aDefaultPartition)
-: connectionFactory(aConnectionFactory),
+SharedConnection::SharedConnection(std::shared_ptr<SharedConnectionFactory> aSharedConnectionFactory, rd_kafka_t& aProducerRdKafkaHandle, rd_kafka_topic_t& aRdKafkaTopic, const std::string& aTopicName, const std::string& aDefaultKey, std::int32_t aDefaultPartition)
+: sharedConnectionFactory(aSharedConnectionFactory),
   topicName(aTopicName),
   defaultKey(aDefaultKey),
   defaultPartition(aDefaultPartition),
   producerRdKafkaHandle(aProducerRdKafkaHandle),
   rdKafkaTopic(aRdKafkaTopic)
 {
-	connectionFactory.connectionRegister();
+	sharedConnectionFactory->connectionRegister(this);
 }
 
-Connection::~Connection() {
-	if(wait(0) == false) {
-		logger.error << "Wait-Error on destroying connection for topic \"" << topicName << "\"\n";
-	}
+SharedConnection::~SharedConnection() {
+	for(int i=0; i<60; ++i) {
+		rd_kafka_resp_err_t rc = rd_kafka_flush(&producerRdKafkaHandle, 1000);
+		if(rc == RD_KAFKA_RESP_ERR_NO_ERROR) {
+			break;
+		}
+		if(rc != RD_KAFKA_RESP_ERR__TIMED_OUT) {
+			logger.error << "Unknown return code on flushing connection for topic \"" << topicName << "\"\n";
+			break;
+		}
+		logger.debug << "Wait for finished flush on connection for topic \"" << topicName << "\"\n";
+	};
+
 	rd_kafka_topic_destroy(&rdKafkaTopic);
 	rd_kafka_destroy(&producerRdKafkaHandle);
 
-	connectionFactory.connectionUnregister();
+	sharedConnectionFactory->connectionUnregister(this);
 }
 
-esl::com::basic::client::Response Connection::send(const esl::com::basic::client::Request& request, esl::io::Output output, esl::com::basic::client::Interface::CreateInput createInput) const {
-	send(request, std::move(output));
-	return esl::com::basic::client::Response();
-}
+void SharedConnection::send(const esl::com::basic::client::Request& request, esl::io::Output output) const {
+	if(isReleasing) {
+		throw std::runtime_error("Connection has been shutdown");
+	}
 
-esl::com::basic::client::Response Connection::send(const esl::com::basic::client::Request& request, esl::io::Output output, esl::io::Input input) const {
-	send(request, std::move(output));
-	return esl::com::basic::client::Response();
-}
-
-void Connection::send(const esl::com::basic::client::Request& request, esl::io::Output output) const {
 	if(!output) {
 		return;
 	}
@@ -169,13 +153,17 @@ void Connection::send(const esl::com::basic::client::Request& request, esl::io::
 	//return esl::io::Output();
 }
 
-void Connection::flush() {
+void SharedConnection::release() {
+	isReleasing = true;
+}
+/*
+void SharedConnection::flush() {
 	if(rd_kafka_flush(&producerRdKafkaHandle, 0) == RD_KAFKA_RESP_ERR_NO_ERROR) {
 
 	}
 }
 
-bool Connection::wait(std::uint32_t ms) {
+bool SharedConnection::wait(std::uint32_t ms) {
 	if(ms == 0) {
 		while(true) {
 			rd_kafka_resp_err_t rc = rd_kafka_flush(&producerRdKafkaHandle, 1000);
@@ -190,7 +178,7 @@ bool Connection::wait(std::uint32_t ms) {
 
 	return rd_kafka_flush(&producerRdKafkaHandle, ms) == RD_KAFKA_RESP_ERR_NO_ERROR;
 }
-#endif
+*/
 
 } /* namespace client */
 } /* namespace basic */

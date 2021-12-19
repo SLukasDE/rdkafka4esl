@@ -24,9 +24,6 @@ public:
 	esl::com::basic::server::Connection& getConnection() const override;
 	const Request& getRequest() const override;
 
-protected:
-	esl::object::Interface::Object* findObject(const std::string& id) const override;
-
 private:
 	const Socket& socket;
 	Request request;

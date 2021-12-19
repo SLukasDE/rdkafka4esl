@@ -23,14 +23,6 @@ const Request& RequestContext::getRequest() const {
 	return request;
 }
 
-esl::object::Interface::Object* RequestContext::findObject(const std::string& id) const {
-	esl::com::basic::server::Interface::Socket::ObjectFactory objectFactory = socket.getObjectFactory(id);
-	if(objectFactory) {
-		return objectFactory(*this);
-	}
-	return nullptr;
-}
-
 } /* namespace server */
 } /* namespace basic */
 } /* namespace com */

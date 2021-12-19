@@ -1,21 +1,21 @@
 #ifndef RDKAFKA4ESL_COM_BASIC_BROKER_CLIENT_H_
 #define RDKAFKA4ESL_COM_BASIC_BROKER_CLIENT_H_
 
-#include <rdkafka4esl/com/basic/client/Connection.h>
 #include <rdkafka4esl/com/basic/server/Socket.h>
+#include <rdkafka4esl/com/basic/client/ConnectionFactory.h>
 
-#include <esl/com/basic/broker/Interface.h>
-#include <esl/com/basic/server/requesthandler/Interface.h>
 #include <esl/object/Interface.h>
+#include <esl/module/Interface.h>
 
 #include <cstdint>
 #include <utility>
 #include <string>
 #include <vector>
-#include <map>
+#include <set>
 #include <mutex>
 #include <condition_variable>
 #include <memory>
+#include <functional>
 
 #include <librdkafka/rdkafka.h>
 
@@ -24,76 +24,53 @@ namespace com {
 namespace basic {
 namespace broker {
 
-class Client final : public esl::com::basic::broker::Interface::Client {
+class Client final : public esl::object::Interface::Object {
 public:
 	static inline const char* getImplementation() {
 		return "rdkafka4esl";
 	}
 
-	static std::unique_ptr<esl::com::basic::broker::Interface::Client> create(const esl::object::Interface::Settings& settings);
+	static std::unique_ptr<esl::object::Interface::Object> create(const esl::object::Interface::Settings& settings);
 
 	Client(const esl::object::Interface::Settings& settings);
 	~Client();
 
-	esl::com::basic::server::Interface::Socket& getSocket() override;
+	void start(std::function<void()> onReleasedHandler);
+	void stop();
+	bool wait(std::uint32_t ms);
 
-	void socketListen(const std::set<std::string>& notifications, esl::com::basic::server::requesthandler::Interface::CreateInput createInput);
-	void socketRelease();
-	bool socketWait(std::uint32_t ms);
-	bool consumerIsStateNotRunning() const;
+	static rd_kafka_conf_t& createConfig(const std::vector<std::pair<std::string, std::string>>& kafkaSettings);
+	const std::vector<std::pair<std::string, std::string>>& getKafkaSettings() const;
 
-	std::unique_ptr<esl::com::basic::client::Interface::Connection> createConnection(const esl::com::basic::broker::Interface::Settings& parameters) override;
-	void connectionRegister();
-	void connectionUnregister();
+	void registerConnectionFactory(client::SharedConnectionFactory* sharedConnectionFactory);
+	void unregisterConnectionFactory(client::SharedConnectionFactory* sharedConnectionFactory);
+
+	void registerSocket(server::Socket* socket);
+	void unregisterSocket(server::Socket* socket);
 
 private:
-	std::vector<std::pair<std::string, std::string>> settings;
+	std::vector<std::pair<std::string, std::string>> kafkaSettings;
+	std::function<void()> onReleasedHandler;
+
+	std::mutex stateMutex;
+	enum {
+		stopped,
+		started,
+		stopping
+	} state = stopped;
+
+	std::mutex stateNotifyMutex;
+	std::condition_variable stateNotifyCondVar;
 
 	/* ****************** *
 	 * Producer variables *
 	 * ****************** */
-	std::mutex producerWaitNotifyMutex;
-	std::condition_variable producerWaitCondVar;
-
-	std::mutex producerCountMutex;
-	std::size_t producerCount = 0;
+	std::set<client::SharedConnectionFactory*> connectionFactories;
 
 	/* ****************** *
 	 * Consumer variables *
 	 * ****************** */
-	server::Socket socket;
-	bool consumerStopListeningIfEmpty = false;
-	//esl::object::ObjectContext& consumerObjectContext;
-
-	std::mutex consumerThreadsNotifyMutex;
-	std::condition_variable consumerThreadsCondVar;
-
-	std::mutex consumerWaitNotifyMutex;
-	std::condition_variable consumerWaitCondVar;
-
-	mutable std::mutex consumerThreadMutex;
-	rd_kafka_t* consumerRdKafkaHandle = nullptr;
-	rd_kafka_topic_partition_list_t* consumerRdKafkaSubscription = nullptr;
-	enum {
-		CSNotRunning,
-		CSRunning,
-		CSShutdown
-	} consumerState = CSNotRunning;
-	std::uint16_t consumerThreadsRunning = 0;
-	std::uint16_t consumerThreadsMax = 0;
-
-	rd_kafka_conf_t& createConfig() const;
-
-	bool producerIsEmpty();
-
-	void consumerStartThread(const std::set<std::string>& queues, esl::com::basic::server::requesthandler::Interface::CreateInput createInput);
-
-	//void consumerInit(const std::set<std::string>& queues);
-	//void consumerRelease();
-
-	bool consumerIsThreadAvailable() const;
-	bool consumerIsNoThreadRunning() const;
-	void consumerMessageHandlerThread(rd_kafka_message_t& rdKafkaMessage, esl::com::basic::server::requesthandler::Interface::CreateInput createInput);
+	std::set<server::Socket*> sockets;
 };
 
 } /* namespace broker */
