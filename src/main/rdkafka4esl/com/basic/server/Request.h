@@ -25,7 +25,6 @@ public:
 
 private:
 	rd_kafka_message_t& kafkaMessage;
-
 	std::vector<std::pair<std::string, std::string>> values;
 };
 

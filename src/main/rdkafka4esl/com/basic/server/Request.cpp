@@ -1,5 +1,7 @@
 #include <rdkafka4esl/com/basic/server/Request.h>
 
+#include <stdexcept>
+
 namespace rdkafka4esl {
 namespace com {
 namespace basic {
@@ -58,7 +60,7 @@ bool Request::hasValue(const std::string& key) const {
 }
 
 std::string Request::getValue(const std::string& key) const {
-	if(key == "topicName") {
+	if(key == "topic") {
 		return getTopicName(kafkaMessage);
 	}
 	else if(key == "offset") {
@@ -74,7 +76,7 @@ std::string Request::getValue(const std::string& key) const {
 		return getLength(kafkaMessage);
 	}
 
-	throw std::runtime_error("esl::object::Values: Unknown parameter key=\"" + key + "\"");
+	throw std::runtime_error("rdkafka4esl::com::basic::server::Request: Unknown parameter key=\"" + key + "\"");
 }
 
 const std::vector<std::pair<std::string, std::string>>& Request::getValues() const {
