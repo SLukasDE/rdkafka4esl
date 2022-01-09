@@ -38,7 +38,7 @@ SharedConnectionFactory::~SharedConnectionFactory() {
 	client.unregisterConnectionFactory(this);
 }
 
-std::unique_ptr<esl::com::basic::client::Interface::Connection> SharedConnectionFactory::createConnection(std::shared_ptr<SharedConnectionFactory> sharedConnectionFactory) const {
+std::unique_ptr<esl::com::basic::client::Connection> SharedConnectionFactory::createConnection(std::shared_ptr<SharedConnectionFactory> sharedConnectionFactory) const {
 	char errstr[512];
 	rd_kafka_t* producerRdKafkaHandle = nullptr;
 	rd_kafka_topic_conf_t* rdKafkaTopicConfig = nullptr;
@@ -93,7 +93,7 @@ std::unique_ptr<esl::com::basic::client::Interface::Connection> SharedConnection
 
 	//return std::unique_ptr<esl::com::basic::client::Interface::Connection>(new Connection(*this, *producerRdKafkaHandle, *rdKafkaTopic, topicName, key, partition));
 	std::shared_ptr<SharedConnection> sharedConnection(new SharedConnection(sharedConnectionFactory, *producerRdKafkaHandle, *rdKafkaTopic, topicName, key, partition));
-	return std::unique_ptr<esl::com::basic::client::Interface::Connection>(new Connection(sharedConnection));
+	return std::unique_ptr<esl::com::basic::client::Connection>(new Connection(sharedConnection));
 }
 
 void SharedConnectionFactory::connectionRegister(SharedConnection* sharedConnection) {

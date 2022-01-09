@@ -3,7 +3,6 @@
 #include <rdkafka4esl/com/basic/broker/Client.h>
 #include <rdkafka4esl/Logger.h>
 
-#include <esl/object/ObjectContext.h>
 #include <esl/utility/String.h>
 
 #include <stdexcept>
@@ -363,8 +362,7 @@ void Socket::listen(const esl::com::basic::server::requesthandler::Interface::Re
 
 void Socket::accept(rd_kafka_message_t& rdkMessage, const esl::com::basic::server::requesthandler::Interface::RequestHandler& requestHandler) {
 	RequestContext requestContext(*this, rdkMessage);
-	esl::object::ObjectContext objectContext;
-	esl::io::Input messageHandler = requestHandler.accept(requestContext, objectContext);
+	esl::io::Input messageHandler = requestHandler.accept(requestContext);
 
 	if(messageHandler) {
 		try {

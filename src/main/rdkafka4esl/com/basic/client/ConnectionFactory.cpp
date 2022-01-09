@@ -71,7 +71,7 @@ void ConnectionFactory::initializeContext(esl::object::Interface::ObjectContext&
 	}
 }
 
-std::unique_ptr<esl::com::basic::client::Interface::Connection> ConnectionFactory::createConnection() const {
+std::unique_ptr<esl::com::basic::client::Connection> ConnectionFactory::createConnection() const {
 	if(sharedConnectionFactory == nullptr) {
 		return nullptr;
 	}

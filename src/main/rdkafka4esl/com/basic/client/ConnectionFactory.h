@@ -34,7 +34,7 @@ public:
 
 	void initializeContext(esl::object::Interface::ObjectContext& objectContext) override;
 
-	std::unique_ptr<esl::com::basic::client::Interface::Connection> createConnection() const override;
+	std::unique_ptr<esl::com::basic::client::Connection> createConnection() const override;
 
 private:
 	//const esl::module::Interface::Settings settings;

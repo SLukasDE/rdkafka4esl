@@ -1,8 +1,7 @@
 #ifndef RDKAFKA4ESL_COM_BASIC_CLIENT_SHAREDCONNECTIONFACTORY_H_
 #define RDKAFKA4ESL_COM_BASIC_CLIENT_SHAREDCONNECTIONFACTORY_H_
 
-#include <esl/com/basic/client/Interface.h>
-//#include <esl/com/basic/client/Connection.h>
+#include <esl/com/basic/client/Connection.h>
 
 #include <string>
 #include <utility>
@@ -39,7 +38,7 @@ public:
 	//called by broker::Client
 	void release();
 
-	std::unique_ptr<esl::com::basic::client::Interface::Connection> createConnection(std::shared_ptr<SharedConnectionFactory> sharedConnectionFactory) const;
+	std::unique_ptr<esl::com::basic::client::Connection> createConnection(std::shared_ptr<SharedConnectionFactory> sharedConnectionFactory) const;
 
 private:
 	broker::Client& client;
