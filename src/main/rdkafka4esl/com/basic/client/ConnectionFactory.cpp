@@ -59,7 +59,7 @@ ConnectionFactory::ConnectionFactory(const esl::module::Interface::Settings& set
 	}
 }
 
-void ConnectionFactory::initializeContext(esl::object::Interface::ObjectContext& objectContext) {
+void ConnectionFactory::initializeContext(esl::object::ObjectContext& objectContext) {
 	broker::Client* client = objectContext.findObject<broker::Client>(brokerId);
 	if(client == nullptr) {
     	throw std::runtime_error("Cannot find broker with id '" + brokerId + "'");

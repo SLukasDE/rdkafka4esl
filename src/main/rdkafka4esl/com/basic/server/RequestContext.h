@@ -3,6 +3,7 @@
 
 #include <rdkafka4esl/com/basic/server/Socket.h>
 #include <rdkafka4esl/com/basic/server/Request.h>
+#include <rdkafka4esl/com/basic/server/ObjectContext.h>
 
 #include <esl/com/basic/server/RequestContext.h>
 #include <esl/com/basic/server/Connection.h>
@@ -24,12 +25,12 @@ public:
 
 	esl::com::basic::server::Connection& getConnection() const override;
 	const Request& getRequest() const override;
-	esl::object::Interface::ObjectContext& getObjectContext() override;
+	esl::object::ObjectContext& getObjectContext() override;
 
 private:
 	const Socket& socket;
 	Request request;
-	esl::object::ObjectContext objectContext;
+	ObjectContext objectContext;
 };
 
 } /* namespace server */

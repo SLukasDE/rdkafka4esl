@@ -4,7 +4,7 @@
 #include <esl/com/basic/server/Interface.h>
 #include <esl/com/basic/server/requesthandler/Interface.h>
 #include <esl/object/InitializeContext.h>
-#include <esl/object/Interface.h>
+#include <esl/object/ObjectContext.h>
 #include <esl/module/Interface.h>
 
 #include <librdkafka/rdkafka.h>
@@ -34,7 +34,7 @@ public:
 	Socket(const esl::module::Interface::Settings& settings);
 	~Socket();
 
-	void initializeContext(esl::object::Interface::ObjectContext& objectContext) override;
+	void initializeContext(esl::object::ObjectContext& objectContext) override;
 
 	void listen(const esl::com::basic::server::requesthandler::Interface::RequestHandler& requestHandler, std::function<void()> onReleasedHandler) override;
 	void release() override;
