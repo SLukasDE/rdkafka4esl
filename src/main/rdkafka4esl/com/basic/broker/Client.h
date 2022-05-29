@@ -7,15 +7,15 @@
 #include <esl/object/Interface.h>
 #include <esl/module/Interface.h>
 
-#include <cstdint>
-#include <utility>
-#include <string>
-#include <vector>
-#include <set>
-#include <mutex>
 #include <condition_variable>
-#include <memory>
+#include <cstdint>
 #include <functional>
+#include <set>
+#include <string>
+#include <memory>
+#include <mutex>
+#include <utility>
+#include <vector>
 
 #include <librdkafka/rdkafka.h>
 
@@ -30,9 +30,9 @@ public:
 		return "rdkafka4esl";
 	}
 
-	static std::unique_ptr<esl::object::Interface::Object> create(const esl::object::Interface::Settings& settings);
+	static std::unique_ptr<esl::object::Interface::Object> create(const std::vector<std::pair<std::string, std::string>>& settings);
 
-	Client(const esl::object::Interface::Settings& settings);
+	Client(const std::vector<std::pair<std::string, std::string>>& settings);
 	~Client();
 
 	void start(std::function<void()> onReleasedHandler);

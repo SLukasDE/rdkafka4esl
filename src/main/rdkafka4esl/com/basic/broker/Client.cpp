@@ -21,7 +21,7 @@ namespace broker {
 namespace {
 Logger logger("rdkafka4esl::com::basic::broker::Client");
 
-std::vector<std::pair<std::string, std::string>> extractKafkaSettings(const esl::object::Interface::Settings& aSettings) {
+std::vector<std::pair<std::string, std::string>> extractKafkaSettings(const std::vector<std::pair<std::string, std::string>>& aSettings) {
 	std::vector<std::pair<std::string, std::string>> kafkaSettings;
 	bool hasGroupId = false;
 
@@ -44,12 +44,12 @@ std::vector<std::pair<std::string, std::string>> extractKafkaSettings(const esl:
 
 } /* anonymous namespace */
 
-std::unique_ptr<esl::object::Interface::Object> Client::create(const esl::object::Interface::Settings& settings) {
-//std::unique_ptr<esl::com::basic::broker::Interface::Client> Client::create(const esl::object::Interface::Settings& settings) {
+std::unique_ptr<esl::object::Interface::Object> Client::create(const std::vector<std::pair<std::string, std::string>>& settings) {
+//std::unique_ptr<esl::com::basic::broker::Interface::Client> Client::create(const std::vector<std::pair<std::string, std::string>>& settings) {
 	return std::unique_ptr<esl::object::Interface::Object>(new Client(settings));
 }
 
-Client::Client(const esl::object::Interface::Settings& aSettings)
+Client::Client(const std::vector<std::pair<std::string, std::string>>& aSettings)
 : kafkaSettings(extractKafkaSettings(aSettings))
 {
 	logger.debug << "Begin show kafka settings:\n";
