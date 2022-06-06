@@ -4,7 +4,7 @@
 #include <rdkafka4esl/com/basic/client/Connection.h>
 #include <rdkafka4esl/com/basic/broker/Client.h>
 
-#include <esl/Stacktrace.h>
+#include <esl/stacktrace/Stacktrace.h>
 
 #include <librdkafka/rdkafka.h>
 
@@ -50,7 +50,7 @@ std::unique_ptr<esl::com::basic::client::Connection> SharedConnectionFactory::cr
 
 	producerRdKafkaHandle = rd_kafka_new(RD_KAFKA_PRODUCER, &broker::Client::createConfig(kafkaSettings), errstr, sizeof(errstr));
 	if(producerRdKafkaHandle == nullptr) {
-		throw esl::addStacktrace(std::runtime_error(std::string("rd_kafka_new(RD_KAFKA_PRODUCER, ...) failed: ") + errstr));
+		throw esl::stacktrace::Stacktrace::add(std::runtime_error(std::string("rd_kafka_new(RD_KAFKA_PRODUCER, ...) failed: ") + errstr));
 	}
 
 
@@ -63,7 +63,7 @@ std::unique_ptr<esl::com::basic::client::Connection> SharedConnectionFactory::cr
 		/* Destroy handle object */
 		rd_kafka_destroy(producerRdKafkaHandle);
 
-		throw esl::addStacktrace(std::runtime_error("rd_kafka_topic_conf_new() failed"));
+		throw esl::stacktrace::Stacktrace::add(std::runtime_error("rd_kafka_topic_conf_new() failed"));
 	}
 
 	for(const auto& topicParameter : topicParameters) {
@@ -73,7 +73,7 @@ std::unique_ptr<esl::com::basic::client::Connection> SharedConnectionFactory::cr
 			/* Destroy handle object */
 			rd_kafka_destroy(producerRdKafkaHandle);
 
-			throw esl::addStacktrace(std::runtime_error(errstr));
+			throw esl::stacktrace::Stacktrace::add(std::runtime_error(errstr));
 		}
 	}
 
@@ -88,7 +88,7 @@ std::unique_ptr<esl::com::basic::client::Connection> SharedConnectionFactory::cr
 		/* Destroy handle object */
 		rd_kafka_destroy(producerRdKafkaHandle);
 
-		throw esl::addStacktrace(std::runtime_error("rd_kafka_topic_new failed for topic \"" + topicName + "\""));
+		throw esl::stacktrace::Stacktrace::add(std::runtime_error("rd_kafka_topic_new failed for topic \"" + topicName + "\""));
 	}
 
 	//return std::unique_ptr<esl::com::basic::client::Interface::Connection>(new Connection(*this, *producerRdKafkaHandle, *rdKafkaTopic, topicName, key, partition));

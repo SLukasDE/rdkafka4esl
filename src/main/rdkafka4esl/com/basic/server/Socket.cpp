@@ -17,12 +17,11 @@ namespace {
 Logger logger("rdkafka4esl::com::basic::server::Socket");
 }
 
-std::unique_ptr<esl::com::basic::server::Interface::Socket> Socket::create(const esl::module::Interface::Settings& settings) {
+std::unique_ptr<esl::com::basic::server::Interface::Socket> Socket::create(const std::vector<std::pair<std::string, std::string>>& settings) {
 	return std::unique_ptr<esl::com::basic::server::Interface::Socket>(new Socket(settings));
 }
 
-Socket::Socket(const esl::module::Interface::Settings& settings)
-{
+Socket::Socket(const std::vector<std::pair<std::string, std::string>>& settings) {
 	std::string groupId;
 
 	for(auto& setting : settings) {
@@ -44,7 +43,7 @@ Socket::Socket(const esl::module::Interface::Settings& settings)
 				stopIfEmpty = false;
 			}
 			else {
-		    	throw std::runtime_error("Invalid value \"\" for key 'stop-on-empty'");
+		    	throw std::runtime_error("Invalid value \"" + setting.second + "\" for key 'stop-on-empty'");
 			}
 		}
 		else if(setting.first == "poll-timeout-ms") {
@@ -200,7 +199,6 @@ void Socket::release() {
 	}
 	if(state == stopped && onReleasedHandler) {
 		onReleasedHandler();
-		onReleasedHandler = nullptr;
 	}
 }
 
@@ -353,7 +351,6 @@ void Socket::listen(const esl::com::basic::server::requesthandler::Interface::Re
 		state = stopped;
 		if(onReleasedHandler) {
 			onReleasedHandler();
-			onReleasedHandler = nullptr;
 		}
 	}
 

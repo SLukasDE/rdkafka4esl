@@ -5,7 +5,7 @@
 #include <rdkafka4esl/Logger.h>
 
 #include <esl/io/Consumer.h>
-#include <esl/Stacktrace.h>
+#include <esl/stacktrace/Stacktrace.h>
 #include <esl/object/ObjectContext.h>
 
 #include <string>
@@ -36,7 +36,7 @@ std::vector<std::pair<std::string, std::string>> extractKafkaSettings(const std:
 	}
 
 	if(!hasGroupId) {
-		throw esl::addStacktrace(std::runtime_error("Value \"kafka.group.id\" not specified."));
+		throw esl::stacktrace::Stacktrace::add(std::runtime_error("Value \"kafka.group.id\" not specified."));
 	}
 
 	return kafkaSettings;
@@ -134,11 +134,11 @@ rd_kafka_conf_t& Client::createConfig(const std::vector<std::pair<std::string, s
 	rd_kafka_conf_t* rdKafkaConfig(rd_kafka_conf_new());
 
 	if(rdKafkaConfig == nullptr) {
-		throw esl::addStacktrace(std::runtime_error("Failed to create kafka configuration object"));
+		throw esl::stacktrace::Stacktrace::add(std::runtime_error("Failed to create kafka configuration object"));
 	}
 
 	if(rd_kafka_conf_set(rdKafkaConfig, "client.id", "rdkafka4esl", errstr, sizeof(errstr)) != RD_KAFKA_CONF_OK) {
-		throw esl::addStacktrace(std::runtime_error(errstr));
+		throw esl::stacktrace::Stacktrace::add(std::runtime_error(errstr));
 	}
 
 	/*
@@ -152,7 +152,7 @@ rd_kafka_conf_t& Client::createConfig(const std::vector<std::pair<std::string, s
 	*/
 	for(const auto& setting : kafkaSettings) {
 		if(rd_kafka_conf_set(rdKafkaConfig, setting.first.c_str(), setting.second.c_str(), errstr, sizeof(errstr)) != RD_KAFKA_CONF_OK) {
-			throw esl::addStacktrace(std::runtime_error(errstr));
+			throw esl::stacktrace::Stacktrace::add(std::runtime_error(errstr));
 		}
 	}
 

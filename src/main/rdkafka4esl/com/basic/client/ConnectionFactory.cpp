@@ -8,11 +8,11 @@ namespace com {
 namespace basic {
 namespace client {
 
-std::unique_ptr<esl::com::basic::client::Interface::ConnectionFactory> ConnectionFactory::create(const esl::module::Interface::Settings& settings) {
+std::unique_ptr<esl::com::basic::client::Interface::ConnectionFactory> ConnectionFactory::create(const std::vector<std::pair<std::string, std::string>>& settings) {
 	return std::unique_ptr<esl::com::basic::client::Interface::ConnectionFactory>(new ConnectionFactory(settings));
 }
 
-ConnectionFactory::ConnectionFactory(const esl::module::Interface::Settings& settings)
+ConnectionFactory::ConnectionFactory(const std::vector<std::pair<std::string, std::string>>& settings)
 //: settings(aSettings)
 {
 	bool hasAcks = false;

@@ -9,11 +9,14 @@
 
 #include <librdkafka/rdkafka.h>
 
-#include <memory>
-#include <functional>
-#include <cstdint>
-#include <mutex>
 #include <condition_variable>
+#include <cstdint>
+#include <functional>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace rdkafka4esl {
 namespace com {
@@ -29,16 +32,17 @@ public:
 		return "rdkafka4esl";
 	}
 
-	static std::unique_ptr<esl::com::basic::server::Interface::Socket> create(const esl::module::Interface::Settings& settings);
+	static std::unique_ptr<esl::com::basic::server::Interface::Socket> create(const std::vector<std::pair<std::string, std::string>>& settings);
 
-	Socket(const esl::module::Interface::Settings& settings);
+	Socket(const std::vector<std::pair<std::string, std::string>>& settings);
 	~Socket();
 
 	void initializeContext(esl::object::ObjectContext& objectContext) override;
 
 	void listen(const esl::com::basic::server::requesthandler::Interface::RequestHandler& requestHandler, std::function<void()> onReleasedHandler) override;
 	void release() override;
-	bool wait(std::uint32_t ms) override;
+
+	bool wait(std::uint32_t ms);
 
 private:
 	std::string brokerId;
@@ -47,7 +51,7 @@ private:
 	int pollTimeoutMs = 500;
 
 	broker::Client* client = nullptr;
-	esl::module::Interface::Settings kafkaSettings;
+	std::vector<std::pair<std::string, std::string>> kafkaSettings;
 
 	std::function<void()> onReleasedHandler;
 

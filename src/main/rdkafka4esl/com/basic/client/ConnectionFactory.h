@@ -13,6 +13,8 @@
 
 #include <memory>
 #include <string>
+#include <utility>
+#include <vector>
 
 namespace rdkafka4esl {
 namespace com {
@@ -24,13 +26,13 @@ namespace client {
 
 class ConnectionFactory : public virtual esl::com::basic::client::Interface::ConnectionFactory, public esl::object::InitializeContext {
 public:
-	static std::unique_ptr<esl::com::basic::client::Interface::ConnectionFactory> create(const esl::module::Interface::Settings& settings);
+	static std::unique_ptr<esl::com::basic::client::Interface::ConnectionFactory> create(const std::vector<std::pair<std::string, std::string>>& settings);
 
 	static inline const char* getImplementation() {
 		return "rdkafka4esl";
 	}
 
-	ConnectionFactory(const esl::module::Interface::Settings& settings);
+	ConnectionFactory(const std::vector<std::pair<std::string, std::string>>& settings);
 
 	void initializeContext(esl::object::ObjectContext& objectContext) override;
 

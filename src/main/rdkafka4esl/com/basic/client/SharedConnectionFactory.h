@@ -3,14 +3,14 @@
 
 #include <esl/com/basic/client/Connection.h>
 
+#include <condition_variable>
+#include <cstdint>
+#include <memory>
+#include <mutex>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
-#include <memory>
-#include <cstdint>
-#include <set>
-#include <mutex>
-#include <condition_variable>
 
 namespace rdkafka4esl {
 namespace com {
