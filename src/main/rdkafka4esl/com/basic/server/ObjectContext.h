@@ -2,7 +2,7 @@
 #define RDKAFKA4ESL_COM_BASIC_SERVER_OBJECTCONTEXT_H_
 
 #include <esl/object/Interface.h>
-#include <esl/object/ObjectContext.h>
+#include <esl/object/Context.h>
 
 #include <set>
 #include <string>
@@ -14,7 +14,7 @@ namespace com {
 namespace basic {
 namespace server {
 
-class ObjectContext final : public esl::object::ObjectContext {
+class ObjectContext final : public esl::object::Context {
 public:
 	std::set<std::string> getObjectIds() const override;
 

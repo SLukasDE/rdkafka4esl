@@ -8,7 +8,7 @@
 #include <esl/com/basic/server/RequestContext.h>
 #include <esl/com/basic/server/Connection.h>
 #include <esl/object/Interface.h>
-#include <esl/object/ObjectContext.h>
+#include <esl/object/Context.h>
 
 #include <string>
 
@@ -25,7 +25,7 @@ public:
 
 	esl::com::basic::server::Connection& getConnection() const override;
 	const Request& getRequest() const override;
-	esl::object::ObjectContext& getObjectContext() override;
+	esl::object::Context& getObjectContext() override;
 
 private:
 	const Socket& socket;

@@ -6,7 +6,7 @@
 #include <esl/com/basic/client/Interface.h>
 #include <esl/com/basic/client/Connection.h>
 #include <esl/object/InitializeContext.h>
-#include <esl/object/ObjectContext.h>
+#include <esl/object/Context.h>
 #include <esl/module/Interface.h>
 
 #include <librdkafka/rdkafka.h>
@@ -34,7 +34,7 @@ public:
 
 	ConnectionFactory(const std::vector<std::pair<std::string, std::string>>& settings);
 
-	void initializeContext(esl::object::ObjectContext& objectContext) override;
+	void initializeContext(esl::object::Context& objectContext) override;
 
 	std::unique_ptr<esl::com::basic::client::Connection> createConnection() const override;
 

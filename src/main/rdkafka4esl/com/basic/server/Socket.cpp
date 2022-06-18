@@ -85,7 +85,7 @@ Socket::~Socket() {
 	}
 }
 
-void Socket::initializeContext(esl::object::ObjectContext& objectContext) {
+void Socket::initializeContext(esl::object::Context& objectContext) {
 	if(kafkaSettings.empty()) {
 		broker::Client* client = objectContext.findObject<broker::Client>(brokerId);
 		if(client == nullptr) {

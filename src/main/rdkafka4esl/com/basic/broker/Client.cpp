@@ -6,7 +6,7 @@
 
 #include <esl/io/Consumer.h>
 #include <esl/stacktrace/Stacktrace.h>
-#include <esl/object/ObjectContext.h>
+//#include <esl/object/Context.h>
 
 #include <string>
 #include <map>

@@ -23,7 +23,7 @@ const Request& RequestContext::getRequest() const {
 	return request;
 }
 
-esl::object::ObjectContext& RequestContext::getObjectContext() {
+esl::object::Context& RequestContext::getObjectContext() {
 	return objectContext;
 }
 
