@@ -1,5 +1,7 @@
 #include <rdkafka4esl/com/basic/server/Request.h>
 
+#include <esl/stacktrace/Stacktrace.h>
+
 #include <stdexcept>
 
 namespace rdkafka4esl {
@@ -76,7 +78,7 @@ std::string Request::getValue(const std::string& key) const {
 		return getLength(kafkaMessage);
 	}
 
-	throw std::runtime_error("rdkafka4esl::com::basic::server::Request: Unknown parameter key=\"" + key + "\"");
+	throw esl::stacktrace::Stacktrace::add(std::runtime_error("rdkafka4esl::com::basic::server::Request: Unknown parameter key=\"" + key + "\""));
 }
 
 const std::vector<std::pair<std::string, std::string>>& Request::getValues() const {

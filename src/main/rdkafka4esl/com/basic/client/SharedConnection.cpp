@@ -1,5 +1,4 @@
 #include <rdkafka4esl/com/basic/client/SharedConnection.h>
-//#include <rdkafka4esl/com/basic/client/Connection.h>
 #include <rdkafka4esl/com/basic/client/SharedConnectionFactory.h>
 #include <rdkafka4esl/Logger.h>
 
@@ -85,7 +84,7 @@ SharedConnection::~SharedConnection() {
 
 void SharedConnection::send(const esl::com::basic::client::Request& request, esl::io::Output output) const {
 	if(isReleasing) {
-		throw std::runtime_error("Connection has been shutdown");
+		throw esl::stacktrace::Stacktrace::add(std::runtime_error("Connection has been shutdown"));
 	}
 
 	if(!output) {

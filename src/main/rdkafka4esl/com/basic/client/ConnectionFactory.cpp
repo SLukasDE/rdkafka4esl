@@ -1,6 +1,9 @@
 #include <rdkafka4esl/com/basic/client/ConnectionFactory.h>
 #include <rdkafka4esl/com/basic/broker/Client.h>
 
+#include <esl/stacktrace/Stacktrace.h>
+#include <esl/utility/String.h>
+
 #include <stdexcept>
 
 namespace rdkafka4esl {
@@ -12,15 +15,20 @@ std::unique_ptr<esl::com::basic::client::Interface::ConnectionFactory> Connectio
 	return std::unique_ptr<esl::com::basic::client::Interface::ConnectionFactory>(new ConnectionFactory(settings));
 }
 
-ConnectionFactory::ConnectionFactory(const std::vector<std::pair<std::string, std::string>>& settings)
-//: settings(aSettings)
-{
+ConnectionFactory::ConnectionFactory(const std::vector<std::pair<std::string, std::string>>& settings) {
 	bool hasAcks = false;
+	bool hasKey = false;
+	bool hasPartition = false;
+
 	for(const auto& setting : settings) {
 		if(setting.first == "broker-id") {
+			if(!brokerId.empty()) {
+	            throw esl::stacktrace::Stacktrace::add(std::runtime_error("multiple definition of attribute 'broker-id'."));
+			}
+
 			brokerId = setting.second;
 		    if(brokerId.empty()) {
-		    	throw std::runtime_error("Invalid value for \"\" for key 'broker-id'");
+		    	throw esl::stacktrace::Stacktrace::add(std::runtime_error("Invalid value for \"\" for key 'broker-id'"));
 		    }
 		}
 		else if(setting.first.size() > 6 && setting.first.substr(0, 6) == "kafka.") {
@@ -31,19 +39,33 @@ ConnectionFactory::ConnectionFactory(const std::vector<std::pair<std::string, st
 			topicParameters.emplace_back(kafkaKey, setting.second);
 		}
 		else if(setting.first == "topic") {
+			if(!topicName.empty()) {
+	            throw esl::stacktrace::Stacktrace::add(std::runtime_error("multiple definition of attribute 'topic'."));
+			}
+
 			topicName = setting.second;
-			if(topicName == "") {
-				throw std::runtime_error("Invalid value \"\" for key 'topic'");
+			if(topicName.empty()) {
+				throw esl::stacktrace::Stacktrace::add(std::runtime_error("Invalid value \"\" for key 'topic'"));
 			}
 		}
 		else if(setting.first == "key") {
+			if(hasKey) {
+	            throw esl::stacktrace::Stacktrace::add(std::runtime_error("multiple definition of attribute 'key'."));
+			}
+			hasKey = true;
+
 			key = setting.second;
 		}
 		else if(setting.first == "partition") {
-			partition = std::stoi(setting.second);
+			if(hasPartition) {
+	            throw esl::stacktrace::Stacktrace::add(std::runtime_error("multiple definition of attribute 'partition'."));
+			}
+			hasPartition = true;
+
+			partition = esl::utility::String::toInt(setting.second);
 		}
 		else {
-			throw std::runtime_error("Unknown key \"" + setting.first + "\"");
+			throw esl::stacktrace::Stacktrace::add(std::runtime_error("Unknown key \"" + setting.first + "\""));
 		}
 	}
 
@@ -52,22 +74,22 @@ ConnectionFactory::ConnectionFactory(const std::vector<std::pair<std::string, st
 	}
 
 	if(brokerId.empty()) {
-    	throw std::runtime_error("Key 'broker-id' is missing");
+    	throw esl::stacktrace::Stacktrace::add(std::runtime_error("Key 'broker-id' is missing"));
 	}
 	if(topicName.empty()) {
-    	throw std::runtime_error("Key 'topic' is missing");
+    	throw esl::stacktrace::Stacktrace::add(std::runtime_error("Key 'topic' is missing"));
 	}
 }
 
 void ConnectionFactory::initializeContext(esl::object::Context& objectContext) {
 	broker::Client* client = objectContext.findObject<broker::Client>(brokerId);
 	if(client == nullptr) {
-    	throw std::runtime_error("Cannot find broker with id '" + brokerId + "'");
+    	throw esl::stacktrace::Stacktrace::add(std::runtime_error("Cannot find broker with id '" + brokerId + "'"));
 	}
 
 	sharedConnectionFactory = std::unique_ptr<SharedConnectionFactory>(new SharedConnectionFactory(*client, topicParameters, topicName, key, partition));
 	if(sharedConnectionFactory == nullptr) {
-    	throw std::runtime_error("Cannot create shared connection factory for broker with id '" + brokerId + "'");
+    	throw esl::stacktrace::Stacktrace::add(std::runtime_error("Cannot create shared connection factory for broker with id '" + brokerId + "'"));
 	}
 }
 

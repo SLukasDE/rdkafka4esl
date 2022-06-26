@@ -3,6 +3,7 @@
 #include <rdkafka4esl/com/basic/broker/Client.h>
 #include <rdkafka4esl/Logger.h>
 
+#include <esl/stacktrace/Stacktrace.h>
 #include <esl/utility/String.h>
 
 #include <stdexcept>
@@ -23,18 +24,40 @@ std::unique_ptr<esl::com::basic::server::Interface::Socket> Socket::create(const
 
 Socket::Socket(const std::vector<std::pair<std::string, std::string>>& settings) {
 	std::string groupId;
+	bool hasMaxThreads = false;
+	bool hasStopOnEmpty = false;
+	bool hasPollTimeoutMs = false;
 
 	for(auto& setting : settings) {
 		if(setting.first == "broker-id") {
+			if(!brokerId.empty()) {
+	            throw esl::stacktrace::Stacktrace::add(std::runtime_error("multiple definition of attribute 'broker-id'."));
+			}
+
 			brokerId = setting.second;
 		    if(brokerId.empty()) {
-		    	throw std::runtime_error("Invalid value \"\" for key 'broker-id'");
+		    	throw esl::stacktrace::Stacktrace::add(std::runtime_error("Invalid value \"\" for key 'broker-id'"));
 		    }
 		}
 		else if(setting.first == "threads") {
-			maxThreads = static_cast<std::uint16_t>(std::stoul(setting.second));
+			if(hasMaxThreads) {
+	            throw esl::stacktrace::Stacktrace::add(std::runtime_error("multiple definition of attribute 'threads'."));
+			}
+			hasMaxThreads = true;
+
+			int i = esl::utility::String::toInt(setting.second);
+		    if(i < 0) {
+		    	throw esl::stacktrace::Stacktrace::add(std::runtime_error("Invalid negative value for \"" + setting.first + "\"=\"" + setting.second + "\""));
+		    }
+
+			maxThreads = static_cast<std::uint16_t>(i);
 		}
 		else if(setting.first == "stop-on-empty") {
+			if(hasStopOnEmpty) {
+	            throw esl::stacktrace::Stacktrace::add(std::runtime_error("multiple definition of attribute 'stop-on-empty'."));
+			}
+			hasStopOnEmpty = true;
+
 			std::string value = esl::utility::String::toLower(setting.second);
 			if(value == "true") {
 				stopIfEmpty = true;
@@ -43,38 +66,47 @@ Socket::Socket(const std::vector<std::pair<std::string, std::string>>& settings)
 				stopIfEmpty = false;
 			}
 			else {
-		    	throw std::runtime_error("Invalid value \"" + setting.second + "\" for key 'stop-on-empty'");
+		    	throw esl::stacktrace::Stacktrace::add(std::runtime_error("Invalid value \"" + setting.second + "\" for key 'stop-on-empty'"));
 			}
 		}
 		else if(setting.first == "poll-timeout-ms") {
-			pollTimeoutMs = static_cast<int>(std::stoul(setting.second));
+			if(hasPollTimeoutMs) {
+	            throw esl::stacktrace::Stacktrace::add(std::runtime_error("multiple definition of attribute 'poll-timeout-ms'."));
+			}
+			hasPollTimeoutMs = true;
+
+			pollTimeoutMs = esl::utility::String::toInt(setting.second);
 			if(pollTimeoutMs < 1) {
-		    	throw std::runtime_error("Invalid value \"" + setting.second + "\" for key 'poll-timeout-ms'");
+		    	throw esl::stacktrace::Stacktrace::add(std::runtime_error("Invalid value \"" + setting.second + "\" for key 'poll-timeout-ms'"));
 			}
 		}
 		else if(setting.first.size() > 6 && setting.first.substr(0, 6) == "kafka.") {
 			std::string kafkaKey = setting.first.substr(6);
 			if(kafkaKey == "group.id") {
+				if(!groupId.empty()) {
+		            throw esl::stacktrace::Stacktrace::add(std::runtime_error("multiple definition of attribute 'kafka.group.id'."));
+				}
+
 				groupId = setting.second;
 				if(groupId.empty()) {
-			    	throw std::runtime_error("Invalid value \"\" for key 'kafka.group.id'");
+			    	throw esl::stacktrace::Stacktrace::add(std::runtime_error("Invalid value \"\" for key 'kafka.group.id'"));
 				}
 			}
 			kafkaSettings.emplace_back(kafkaKey, setting.second);
 		}
 		else {
-			throw std::runtime_error("Unknown key '" + setting.first + "'");
+			throw esl::stacktrace::Stacktrace::add(std::runtime_error("Unknown key '" + setting.first + "'"));
 		}
 	}
 
 	if(kafkaSettings.empty()) {
 		if(brokerId.empty()) {
-	    	throw std::runtime_error("Key 'broker-id' is missing");
+	    	throw esl::stacktrace::Stacktrace::add(std::runtime_error("Key 'broker-id' is missing"));
 		}
 	}
 	else {
 		if(groupId.empty()) {
-	    	throw std::runtime_error("Key 'kafka.group.id' is missing.");
+	    	throw esl::stacktrace::Stacktrace::add(std::runtime_error("Key 'kafka.group.id' is missing."));
 		}
 	}
 }
@@ -89,7 +121,7 @@ void Socket::initializeContext(esl::object::Context& objectContext) {
 	if(kafkaSettings.empty()) {
 		broker::Client* client = objectContext.findObject<broker::Client>(brokerId);
 		if(client == nullptr) {
-	    	throw std::runtime_error("Cannot find broker with id '" + brokerId + "'");
+	    	throw esl::stacktrace::Stacktrace::add(std::runtime_error("Cannot find broker with id '" + brokerId + "'"));
 		}
 		client->registerSocket(this);
 		kafkaSettings = client->getKafkaSettings();
@@ -99,12 +131,12 @@ void Socket::initializeContext(esl::object::Context& objectContext) {
 void Socket::listen(const esl::com::basic::server::requesthandler::Interface::RequestHandler& requestHandler, std::function<void()> aOnReleasedHandler) {
 	std::lock_guard<std::mutex> stateLock(stateMutex);
 	if(state != stopped) {
-		throw std::runtime_error("Kafka socket is already listening.");
+		throw esl::stacktrace::Stacktrace::add(std::runtime_error("Kafka socket is already listening."));
 	}
 
 	std::set<std::string> notifications = requestHandler.getNotifiers();
 	if(notifications.empty()) {
-		throw std::runtime_error("Cannot listen on kafka broker for empty topic list");
+		throw esl::stacktrace::Stacktrace::add(std::runtime_error("Cannot listen on kafka broker for empty topic list"));
 	}
 
 	/* prepare subscription for specified topics */
@@ -121,16 +153,16 @@ void Socket::listen(const esl::com::basic::server::requesthandler::Interface::Re
 			topic = notification.substr(0, pos);
 			if(pos+1 < notification.size()) {
 				std::string partitionStr = notification.substr(pos+1);
-				partition = static_cast<std::uint32_t>(std::stoi(partitionStr));
+				partition = esl::utility::String::toInt(partitionStr);
 			}
 		}
 
 		if(topic.empty()) {
-			throw std::runtime_error("Invalid notifier '" + notification + "' to listen, because topic name is empty");
+			throw esl::stacktrace::Stacktrace::add(std::runtime_error("Invalid notifier '" + notification + "' to listen, because topic name is empty"));
 		}
 
 		if(partition < 0 && partition != RD_KAFKA_PARTITION_UA) {
-			throw std::runtime_error("Invalid notifier '" + notification + "' to listen, because partition id is invalid");
+			throw esl::stacktrace::Stacktrace::add(std::runtime_error("Invalid notifier '" + notification + "' to listen, because partition id is invalid"));
 		}
 
 		if(partition == RD_KAFKA_PARTITION_UA) {
@@ -145,7 +177,7 @@ void Socket::listen(const esl::com::basic::server::requesthandler::Interface::Re
 	/* Create subscription for specified topics */
 	rdkTopicPartitionList = rd_kafka_topic_partition_list_new(notifications.size());
 	if(rdkTopicPartitionList == nullptr) {
-		throw std::runtime_error("Cannot create kafka topic-partition-list object");
+		throw esl::stacktrace::Stacktrace::add(std::runtime_error("Cannot create kafka topic-partition-list object"));
 	}
 	for(const auto& topicPartition : topicPartitionList) {
 		rd_kafka_topic_partition_list_add(rdkTopicPartitionList, topicPartition.first.c_str(), topicPartition.second);
@@ -157,7 +189,7 @@ void Socket::listen(const esl::com::basic::server::requesthandler::Interface::Re
 	if(rdkConsumerHandle == nullptr) {
 		rd_kafka_topic_partition_list_destroy(rdkTopicPartitionList);
 		rdkTopicPartitionList = nullptr;
-		throw std::runtime_error(errstr);
+		throw esl::stacktrace::Stacktrace::add(std::runtime_error(errstr));
 	}
 
 	/* Subscribe */
@@ -178,7 +210,7 @@ void Socket::listen(const esl::com::basic::server::requesthandler::Interface::Re
 		rd_kafka_topic_partition_list_destroy(rdkTopicPartitionList);
 		rdkTopicPartitionList = nullptr;
 
-		throw std::runtime_error("Failed to subscribe topics: " + errorStr);
+		throw esl::stacktrace::Stacktrace::add(std::runtime_error("Failed to subscribe topics: " + errorStr));
 	}
 
 	/* **************************************** *

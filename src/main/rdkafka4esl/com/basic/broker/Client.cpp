@@ -6,7 +6,6 @@
 
 #include <esl/io/Consumer.h>
 #include <esl/stacktrace/Stacktrace.h>
-//#include <esl/object/Context.h>
 
 #include <string>
 #include <map>
@@ -67,7 +66,7 @@ Client::~Client() {
 void Client::start(std::function<void()> aOnReleasedHandler) {
 	std::lock_guard<std::mutex> stateLock(stateMutex);
 	if(state == stopping) {
-		throw std::runtime_error("Calling 'broker.start' failed because broker is shutting down");
+		throw esl::stacktrace::Stacktrace::add(std::runtime_error("Calling 'broker.start' failed because broker is shutting down"));
 	}
 
 	state = started;
