@@ -5,7 +5,7 @@
 #include <rdkafka4esl/Logger.h>
 
 #include <esl/io/Consumer.h>
-#include <esl/stacktrace/Stacktrace.h>
+#include <esl/system/Stacktrace.h>
 
 #include <string>
 #include <map>
@@ -35,7 +35,7 @@ std::vector<std::pair<std::string, std::string>> extractKafkaSettings(const std:
 	}
 
 	if(!hasGroupId) {
-		throw esl::stacktrace::Stacktrace::add(std::runtime_error("Value \"kafka.group.id\" not specified."));
+		throw esl::system::Stacktrace::add(std::runtime_error("Value \"kafka.group.id\" not specified."));
 	}
 
 	return kafkaSettings;
@@ -43,9 +43,9 @@ std::vector<std::pair<std::string, std::string>> extractKafkaSettings(const std:
 
 } /* anonymous namespace */
 
-std::unique_ptr<esl::object::Interface::Object> Client::create(const std::vector<std::pair<std::string, std::string>>& settings) {
+std::unique_ptr<esl::object::Object> Client::create(const std::vector<std::pair<std::string, std::string>>& settings) {
 //std::unique_ptr<esl::com::basic::broker::Interface::Client> Client::create(const std::vector<std::pair<std::string, std::string>>& settings) {
-	return std::unique_ptr<esl::object::Interface::Object>(new Client(settings));
+	return std::unique_ptr<esl::object::Object>(new Client(settings));
 }
 
 Client::Client(const std::vector<std::pair<std::string, std::string>>& aSettings)
@@ -66,7 +66,7 @@ Client::~Client() {
 void Client::start(std::function<void()> aOnReleasedHandler) {
 	std::lock_guard<std::mutex> stateLock(stateMutex);
 	if(state == stopping) {
-		throw esl::stacktrace::Stacktrace::add(std::runtime_error("Calling 'broker.start' failed because broker is shutting down"));
+		throw esl::system::Stacktrace::add(std::runtime_error("Calling 'broker.start' failed because broker is shutting down"));
 	}
 
 	state = started;
@@ -133,11 +133,11 @@ rd_kafka_conf_t& Client::createConfig(const std::vector<std::pair<std::string, s
 	rd_kafka_conf_t* rdKafkaConfig(rd_kafka_conf_new());
 
 	if(rdKafkaConfig == nullptr) {
-		throw esl::stacktrace::Stacktrace::add(std::runtime_error("Failed to create kafka configuration object"));
+		throw esl::system::Stacktrace::add(std::runtime_error("Failed to create kafka configuration object"));
 	}
 
 	if(rd_kafka_conf_set(rdKafkaConfig, "client.id", "rdkafka4esl", errstr, sizeof(errstr)) != RD_KAFKA_CONF_OK) {
-		throw esl::stacktrace::Stacktrace::add(std::runtime_error(errstr));
+		throw esl::system::Stacktrace::add(std::runtime_error(errstr));
 	}
 
 	/*
@@ -151,7 +151,7 @@ rd_kafka_conf_t& Client::createConfig(const std::vector<std::pair<std::string, s
 	*/
 	for(const auto& setting : kafkaSettings) {
 		if(rd_kafka_conf_set(rdKafkaConfig, setting.first.c_str(), setting.second.c_str(), errstr, sizeof(errstr)) != RD_KAFKA_CONF_OK) {
-			throw esl::stacktrace::Stacktrace::add(std::runtime_error(errstr));
+			throw esl::system::Stacktrace::add(std::runtime_error(errstr));
 		}
 	}
 

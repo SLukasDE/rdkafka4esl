@@ -1,9 +1,9 @@
-#include <rdkafka4esl/Module.h>
+#include <rdkafka4esl/Plugin.h>
 
-#include <esl/module/Module.h>
+#include <esl/plugin/Registry.h>
 
-extern "C" void esl__module__library__install(esl::module::Module* module) {
-	if(module != nullptr) {
-		rdkafka4esl::Module::install(*module);
+extern "C" void esl__plugin__library__install(esl::plugin::Registry* registry, const char* data) {
+	if(registry != nullptr) {
+		rdkafka4esl::Plugin::install(*registry, data);
 	}
 }

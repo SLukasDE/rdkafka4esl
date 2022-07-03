@@ -1,11 +1,10 @@
 #ifndef RDKAFKA4ESL_COM_BASIC_SERVER_SOCKET_H_
 #define RDKAFKA4ESL_COM_BASIC_SERVER_SOCKET_H_
 
-#include <esl/com/basic/server/Interface.h>
-#include <esl/com/basic/server/requesthandler/Interface.h>
+#include <esl/com/basic/server/Socket.h>
+#include <esl/com/basic/server/RequestHandler.h>
 #include <esl/object/InitializeContext.h>
 #include <esl/object/Context.h>
-#include <esl/module/Interface.h>
 
 #include <librdkafka/rdkafka.h>
 
@@ -26,20 +25,20 @@ class Client;
 }
 namespace server {
 
-class Socket : public virtual esl::com::basic::server::Interface::Socket, public esl::object::InitializeContext {
+class Socket : public virtual esl::com::basic::server::Socket, public esl::object::InitializeContext {
 public:
 	static inline const char* getImplementation() {
 		return "rdkafka4esl";
 	}
 
-	static std::unique_ptr<esl::com::basic::server::Interface::Socket> create(const std::vector<std::pair<std::string, std::string>>& settings);
+	static std::unique_ptr<esl::com::basic::server::Socket> create(const std::vector<std::pair<std::string, std::string>>& settings);
 
 	Socket(const std::vector<std::pair<std::string, std::string>>& settings);
 	~Socket();
 
 	void initializeContext(esl::object::Context& objectContext) override;
 
-	void listen(const esl::com::basic::server::requesthandler::Interface::RequestHandler& requestHandler, std::function<void()> onReleasedHandler) override;
+	void listen(const esl::com::basic::server::RequestHandler& requestHandler, std::function<void()> onReleasedHandler) override;
 	void release() override;
 
 	bool wait(std::uint32_t ms);
@@ -76,8 +75,8 @@ private:
 	std::mutex threadsNotifyMutex;
 	std::condition_variable threadsCondVar;
 
-	void listen(const esl::com::basic::server::requesthandler::Interface::RequestHandler& requestHandler);
-	void accept(rd_kafka_message_t& rdkMessage, const esl::com::basic::server::requesthandler::Interface::RequestHandler& requestHandler);
+	void listen(const esl::com::basic::server::RequestHandler& requestHandler);
+	void accept(rd_kafka_message_t& rdkMessage, const esl::com::basic::server::RequestHandler& requestHandler);
 };
 
 } /* namespace server */

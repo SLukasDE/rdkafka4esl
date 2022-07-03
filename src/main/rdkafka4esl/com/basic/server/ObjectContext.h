@@ -1,7 +1,7 @@
 #ifndef RDKAFKA4ESL_COM_BASIC_SERVER_OBJECTCONTEXT_H_
 #define RDKAFKA4ESL_COM_BASIC_SERVER_OBJECTCONTEXT_H_
 
-#include <esl/object/Interface.h>
+#include <esl/object/Object.h>
 #include <esl/object/Context.h>
 
 #include <set>
@@ -19,12 +19,12 @@ public:
 	std::set<std::string> getObjectIds() const override;
 
 protected:
-	esl::object::Interface::Object* findRawObject(const std::string& id) override;
-	const esl::object::Interface::Object* findRawObject(const std::string& id) const override;
-	void addRawObject(const std::string& id, std::unique_ptr<esl::object::Interface::Object> object) override;
+	esl::object::Object* findRawObject(const std::string& id) override;
+	const esl::object::Object* findRawObject(const std::string& id) const override;
+	void addRawObject(const std::string& id, std::unique_ptr<esl::object::Object> object) override;
 
 private:
-	std::map<std::string, std::unique_ptr<esl::object::Interface::Object>> objects;
+	std::map<std::string, std::unique_ptr<esl::object::Object>> objects;
 };
 
 } /* namespace server */

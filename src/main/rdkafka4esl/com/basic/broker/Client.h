@@ -4,8 +4,7 @@
 #include <rdkafka4esl/com/basic/server/Socket.h>
 #include <rdkafka4esl/com/basic/client/ConnectionFactory.h>
 
-#include <esl/object/Interface.h>
-#include <esl/module/Interface.h>
+#include <esl/object/Object.h>
 
 #include <condition_variable>
 #include <cstdint>
@@ -24,13 +23,13 @@ namespace com {
 namespace basic {
 namespace broker {
 
-class Client final : public esl::object::Interface::Object {
+class Client final : public esl::object::Object {
 public:
 	static inline const char* getImplementation() {
 		return "rdkafka4esl";
 	}
 
-	static std::unique_ptr<esl::object::Interface::Object> create(const std::vector<std::pair<std::string, std::string>>& settings);
+	static std::unique_ptr<esl::object::Object> create(const std::vector<std::pair<std::string, std::string>>& settings);
 
 	Client(const std::vector<std::pair<std::string, std::string>>& settings);
 	~Client();

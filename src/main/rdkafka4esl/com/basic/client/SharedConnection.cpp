@@ -4,7 +4,7 @@
 
 #include <esl/io/Producer.h>
 #include <esl/io/Writer.h>
-#include <esl/stacktrace/Stacktrace.h>
+#include <esl/system/Stacktrace.h>
 
 #include <stdexcept>
 
@@ -84,7 +84,7 @@ SharedConnection::~SharedConnection() {
 
 void SharedConnection::send(const esl::com::basic::client::Request& request, esl::io::Output output) const {
 	if(isReleasing) {
-		throw esl::stacktrace::Stacktrace::add(std::runtime_error("Connection has been shutdown"));
+		throw esl::system::Stacktrace::add(std::runtime_error("Connection has been shutdown"));
 	}
 
 	if(!output) {
@@ -102,7 +102,7 @@ void SharedConnection::send(const esl::com::basic::client::Request& request, esl
 			partition = std::stoi(parameter.second);
 		}
 		else {
-			throw esl::stacktrace::Stacktrace::add(std::runtime_error("Unknown parameter \"" + parameter.first + "\" = \"" + parameter.second  + "\""));
+			throw esl::system::Stacktrace::add(std::runtime_error("Unknown parameter \"" + parameter.first + "\" = \"" + parameter.second  + "\""));
 		}
 	}
 
@@ -123,29 +123,29 @@ void SharedConnection::send(const esl::com::basic::client::Request& request, esl
 			logger.error << "- maximum number of outstanding messages has been reached:\n";
 			logger.error << "  \"queue.buffering.max.messages\"\n";
 			logger.error << "  (RD_KAFKA_RESP_ERR__QUEUE_FULL)\n";
-			throw esl::stacktrace::Stacktrace::add(std::runtime_error("Sending message to kafka topic \"" + topicName + "\" failed. (errno == ENOBUFS)"));
+			throw esl::system::Stacktrace::add(std::runtime_error("Sending message to kafka topic \"" + topicName + "\" failed. (errno == ENOBUFS)"));
 			break;
 		case EMSGSIZE:
 			logger.error << "Sending message to kafka topic \"" << topicName << "\" failed. (errno == EMSGSIZE)\n";
 			logger.error << "- message is larger than configured max size:\n";
 			logger.error << "  \"messages.max.bytes\"\n";
 			logger.error << "  (RD_KAFKA_RESP_ERR_MSG_SIZE_TOO_LARGE)\n";
-			throw esl::stacktrace::Stacktrace::add(std::runtime_error("Sending message to kafka topic \"" + topicName + "\" failed. (errno == EMSGSIZE)"));
+			throw esl::system::Stacktrace::add(std::runtime_error("Sending message to kafka topic \"" + topicName + "\" failed. (errno == EMSGSIZE)"));
 			break;
 		case ESRCH:
 			logger.error << "Sending message to kafka topic \"" << topicName << "\" failed. (errno == ESRCH)\n";
 			logger.error << "- requested partition is unknown in the Kafka cluster.\n";
 			logger.error << "  (RD_KAFKA_RESP_ERR__UNKNOWN_PARTITION)\n";
-			throw esl::stacktrace::Stacktrace::add(std::runtime_error("Sending message to kafka topic \"" + topicName + "\" failed. (errno == ESRCH)"));
+			throw esl::system::Stacktrace::add(std::runtime_error("Sending message to kafka topic \"" + topicName + "\" failed. (errno == ESRCH)"));
 		case ENOENT:
 			logger.error << "Sending message to kafka topic \"" << topicName << "\" failed. (errno == ENOENT)\n";
 			logger.error << "- topic is unknown in the Kafka cluster.\n";
 			logger.error << "  (RD_KAFKA_RESP_ERR__UNKNOWN_TOPIC)\n";
-			throw esl::stacktrace::Stacktrace::add(std::runtime_error("Sending message to kafka topic \"" + topicName + "\" failed. (errno == ENOENT)"));
+			throw esl::system::Stacktrace::add(std::runtime_error("Sending message to kafka topic \"" + topicName + "\" failed. (errno == ENOENT)"));
 		default:
 			break;
 		}
-		throw esl::stacktrace::Stacktrace::add(std::runtime_error("Sending message to kafka topic \"" + topicName + "\" failed."));
+		throw esl::system::Stacktrace::add(std::runtime_error("Sending message to kafka topic \"" + topicName + "\" failed."));
 		//throw esl::addStacktrace(std::runtime_error(rd_kafka_err2str(rd_kafka_errno2err(errno))));
 	}
 

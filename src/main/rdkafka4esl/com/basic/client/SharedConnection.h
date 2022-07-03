@@ -1,7 +1,7 @@
 #ifndef RDKAFKA4ESL_COM_BASIC_CLIENT_SHAREDCONNECTION_H_
 #define RDKAFKA4ESL_COM_BASIC_CLIENT_SHAREDCONNECTION_H_
 
-#include <esl/com/basic/client/Interface.h>
+//#include <esl/com/basic/client/IConnectionFactory.h>
 #include <esl/com/basic/client/Request.h>
 #include <esl/com/basic/client/Response.h>
 #include <esl/io/Input.h>

@@ -7,12 +7,12 @@
 
 #include <esl/com/basic/server/RequestContext.h>
 #include <esl/com/basic/server/Connection.h>
-#include <esl/object/Interface.h>
+//#include <esl/object/Object.h>
 #include <esl/object/Context.h>
 
-#include <string>
-
 #include <librdkafka/rdkafka.h>
+
+#include <string>
 
 namespace rdkafka4esl {
 namespace com {
