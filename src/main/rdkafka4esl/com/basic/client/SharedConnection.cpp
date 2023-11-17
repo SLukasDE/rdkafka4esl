@@ -1,6 +1,7 @@
 #include <rdkafka4esl/com/basic/client/SharedConnection.h>
 #include <rdkafka4esl/com/basic/client/SharedConnectionFactory.h>
-#include <rdkafka4esl/Logger.h>
+
+#include <esl/Logger.h>
 
 #include <esl/io/Producer.h>
 #include <esl/io/Writer.h>
@@ -14,7 +15,7 @@ namespace basic {
 namespace client {
 
 namespace {
-Logger logger("rdkafka4esl::com::basic::broker::client::SharedConnection");
+esl::Logger logger("rdkafka4esl::com::basic::broker::client::SharedConnection");
 
 class ToStringWriter : public esl::io::Writer {
 public:

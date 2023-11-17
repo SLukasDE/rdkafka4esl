@@ -1,14 +1,9 @@
 #include <rdkafka4esl/com/basic/client/Connection.h>
-#include <rdkafka4esl/Logger.h>
 
 namespace rdkafka4esl {
 namespace com {
 namespace basic {
 namespace client {
-
-namespace {
-Logger logger("rdkafka4esl::com::basic::client::Connection");
-}
 
 Connection::Connection(std::shared_ptr<SharedConnection> aSharedConnection)
 : sharedConnection(aSharedConnection)

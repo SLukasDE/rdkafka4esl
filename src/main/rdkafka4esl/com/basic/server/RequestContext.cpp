@@ -27,6 +27,10 @@ esl::object::Context& RequestContext::getObjectContext() {
 	return objectContext;
 }
 
+const esl::object::Context& RequestContext::getObjectContext() const {
+	return objectContext;
+}
+
 } /* namespace server */
 } /* namespace basic */
 } /* namespace com */

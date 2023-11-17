@@ -4,6 +4,7 @@
 #include <rdkafka4esl/com/basic/server/Socket.h>
 #include <rdkafka4esl/com/basic/client/ConnectionFactory.h>
 
+#include <esl/object/KafkaClient.h>
 #include <esl/object/Object.h>
 
 #include <condition_variable>
@@ -25,13 +26,7 @@ namespace broker {
 
 class Client final : public esl::object::Object {
 public:
-	static inline const char* getImplementation() {
-		return "rdkafka4esl";
-	}
-
-	static std::unique_ptr<esl::object::Object> create(const std::vector<std::pair<std::string, std::string>>& settings);
-
-	Client(const std::vector<std::pair<std::string, std::string>>& settings);
+	Client(const esl::object::KafkaClient::Settings& settings);
 	~Client();
 
 	void start(std::function<void()> onReleasedHandler);

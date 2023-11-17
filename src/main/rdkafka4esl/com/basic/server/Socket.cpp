@@ -1,8 +1,10 @@
 #include <rdkafka4esl/com/basic/server/Socket.h>
 #include <rdkafka4esl/com/basic/server/RequestContext.h>
 #include <rdkafka4esl/com/basic/broker/Client.h>
-#include <rdkafka4esl/Logger.h>
 
+#include <esl/io/Input.h>
+#include <esl/io/Writer.h>
+#include <esl/Logger.h>
 #include <esl/system/Stacktrace.h>
 #include <esl/utility/String.h>
 
@@ -15,101 +17,13 @@ namespace basic {
 namespace server {
 
 namespace {
-Logger logger("rdkafka4esl::com::basic::server::Socket");
+esl::Logger logger("rdkafka4esl::com::basic::server::Socket");
 }
 
-std::unique_ptr<esl::com::basic::server::Socket> Socket::create(const std::vector<std::pair<std::string, std::string>>& settings) {
-	return std::unique_ptr<esl::com::basic::server::Socket>(new Socket(settings));
-}
 
-Socket::Socket(const std::vector<std::pair<std::string, std::string>>& settings) {
-	std::string groupId;
-	bool hasMaxThreads = false;
-	bool hasStopOnEmpty = false;
-	bool hasPollTimeoutMs = false;
-
-	for(auto& setting : settings) {
-		if(setting.first == "broker-id") {
-			if(!brokerId.empty()) {
-	            throw esl::system::Stacktrace::add(std::runtime_error("multiple definition of attribute 'broker-id'."));
-			}
-
-			brokerId = setting.second;
-		    if(brokerId.empty()) {
-		    	throw esl::system::Stacktrace::add(std::runtime_error("Invalid value \"\" for key 'broker-id'"));
-		    }
-		}
-		else if(setting.first == "threads") {
-			if(hasMaxThreads) {
-	            throw esl::system::Stacktrace::add(std::runtime_error("multiple definition of attribute 'threads'."));
-			}
-			hasMaxThreads = true;
-
-			int i = esl::utility::String::toInt(setting.second);
-		    if(i < 0) {
-		    	throw esl::system::Stacktrace::add(std::runtime_error("Invalid negative value for \"" + setting.first + "\"=\"" + setting.second + "\""));
-		    }
-
-			maxThreads = static_cast<std::uint16_t>(i);
-		}
-		else if(setting.first == "stop-on-empty") {
-			if(hasStopOnEmpty) {
-	            throw esl::system::Stacktrace::add(std::runtime_error("multiple definition of attribute 'stop-on-empty'."));
-			}
-			hasStopOnEmpty = true;
-
-			std::string value = esl::utility::String::toLower(setting.second);
-			if(value == "true") {
-				stopIfEmpty = true;
-			}
-			else if(value == "false") {
-				stopIfEmpty = false;
-			}
-			else {
-		    	throw esl::system::Stacktrace::add(std::runtime_error("Invalid value \"" + setting.second + "\" for key 'stop-on-empty'"));
-			}
-		}
-		else if(setting.first == "poll-timeout-ms") {
-			if(hasPollTimeoutMs) {
-	            throw esl::system::Stacktrace::add(std::runtime_error("multiple definition of attribute 'poll-timeout-ms'."));
-			}
-			hasPollTimeoutMs = true;
-
-			pollTimeoutMs = esl::utility::String::toInt(setting.second);
-			if(pollTimeoutMs < 1) {
-		    	throw esl::system::Stacktrace::add(std::runtime_error("Invalid value \"" + setting.second + "\" for key 'poll-timeout-ms'"));
-			}
-		}
-		else if(setting.first.size() > 6 && setting.first.substr(0, 6) == "kafka.") {
-			std::string kafkaKey = setting.first.substr(6);
-			if(kafkaKey == "group.id") {
-				if(!groupId.empty()) {
-		            throw esl::system::Stacktrace::add(std::runtime_error("multiple definition of attribute 'kafka.group.id'."));
-				}
-
-				groupId = setting.second;
-				if(groupId.empty()) {
-			    	throw esl::system::Stacktrace::add(std::runtime_error("Invalid value \"\" for key 'kafka.group.id'"));
-				}
-			}
-			kafkaSettings.emplace_back(kafkaKey, setting.second);
-		}
-		else {
-			throw esl::system::Stacktrace::add(std::runtime_error("Unknown key '" + setting.first + "'"));
-		}
-	}
-
-	if(kafkaSettings.empty()) {
-		if(brokerId.empty()) {
-	    	throw esl::system::Stacktrace::add(std::runtime_error("Key 'broker-id' is missing"));
-		}
-	}
-	else {
-		if(groupId.empty()) {
-	    	throw esl::system::Stacktrace::add(std::runtime_error("Key 'kafka.group.id' is missing."));
-		}
-	}
-}
+Socket::Socket(const esl::com::basic::server::KafkaSocket::Settings& aSettings)
+: settings(aSettings)
+{ }
 
 Socket::~Socket() {
 	if(client) {
@@ -118,14 +32,18 @@ Socket::~Socket() {
 }
 
 void Socket::initializeContext(esl::object::Context& objectContext) {
-	if(kafkaSettings.empty()) {
-		broker::Client* client = objectContext.findObject<broker::Client>(brokerId);
+	if(settings.kafkaSettings.empty()) {
+		broker::Client* client = objectContext.findObject<broker::Client>(settings.brokerId);
 		if(client == nullptr) {
-	    	throw esl::system::Stacktrace::add(std::runtime_error("Cannot find broker with id '" + brokerId + "'"));
+	    	throw esl::system::Stacktrace::add(std::runtime_error("Cannot find broker with id '" + settings.brokerId + "'"));
 		}
 		client->registerSocket(this);
-		kafkaSettings = client->getKafkaSettings();
+		settings.kafkaSettings = client->getKafkaSettings();
 	}
+}
+
+void Socket::listen(const esl::com::basic::server::RequestHandler& requestHandler) {
+	// it's almost there: check non-blocking method 'listen' (below) how it will call method 'listen2'.
 }
 
 void Socket::listen(const esl::com::basic::server::RequestHandler& requestHandler, std::function<void()> aOnReleasedHandler) {
@@ -185,7 +103,7 @@ void Socket::listen(const esl::com::basic::server::RequestHandler& requestHandle
 
 	/* Create Kafka consumer handle */
 	char errstr[512];
-	rdkConsumerHandle = rd_kafka_new(RD_KAFKA_CONSUMER, &broker::Client::createConfig(kafkaSettings), errstr, sizeof(errstr));
+	rdkConsumerHandle = rd_kafka_new(RD_KAFKA_CONSUMER, &broker::Client::createConfig(settings.kafkaSettings), errstr, sizeof(errstr));
 	if(rdkConsumerHandle == nullptr) {
 		rd_kafka_topic_partition_list_destroy(rdkTopicPartitionList);
 		rdkTopicPartitionList = nullptr;
@@ -219,7 +137,7 @@ void Socket::listen(const esl::com::basic::server::RequestHandler& requestHandle
 	onReleasedHandler = aOnReleasedHandler;
 	state = started;
 	std::thread listenThread([this, &requestHandler]{
-		listen(requestHandler);
+		listen2(requestHandler);
 	});
 	listenThread.detach();
 }
@@ -260,7 +178,7 @@ bool Socket::wait(std::uint32_t ms) {
 	}
 }
 
-void Socket::listen(const esl::com::basic::server::RequestHandler& requestHandler) {
+void Socket::listen2(const esl::com::basic::server::RequestHandler& requestHandler) {
 	while([this] {
 		std::lock_guard<std::mutex> stateLock(stateMutex);
 		return state == started;
@@ -268,10 +186,10 @@ void Socket::listen(const esl::com::basic::server::RequestHandler& requestHandle
 		/* ************************************************** *
 		 * poll and check, later create thread for processing *
 		 * ************************************************** */
-		rd_kafka_message_t* rdKafkaMessage = rd_kafka_consumer_poll(rdkConsumerHandle, pollTimeoutMs);
+		rd_kafka_message_t* rdKafkaMessage = rd_kafka_consumer_poll(rdkConsumerHandle, settings.pollTimeoutMs);
 
 		if(rdKafkaMessage == nullptr) {
-			if(stopIfEmpty) {
+			if(settings.stopIfEmpty) {
 				std::lock_guard<std::mutex> stateLock(stateMutex);
 				state = stopping;
 			}
@@ -280,7 +198,7 @@ void Socket::listen(const esl::com::basic::server::RequestHandler& requestHandle
 
 		if (rdKafkaMessage->err) {
 			if (rdKafkaMessage->err == RD_KAFKA_RESP_ERR__PARTITION_EOF) {
-				if(stopIfEmpty) {
+				if(settings.stopIfEmpty) {
 					std::lock_guard<std::mutex> stateLock(stateMutex);
 					state = stopping;
 				}
@@ -321,7 +239,7 @@ void Socket::listen(const esl::com::basic::server::RequestHandler& requestHandle
 		/* **************** *
 		 * process message  *
 		 * **************** */
-		if(maxThreads == 0) {
+		if(settings.maxThreads == 0) {
 			accept(*rdKafkaMessage, requestHandler);
 		}
 		else {
@@ -331,7 +249,7 @@ void Socket::listen(const esl::com::basic::server::RequestHandler& requestHandle
 			std::unique_lock<std::mutex> threadsNotifyLock(threadsNotifyMutex);
 			threadsCondVar.wait(threadsNotifyLock, [this] {
 				std::lock_guard<std::mutex> stateLock(stateMutex);
-				return threadsRunning < maxThreads;
+				return threadsRunning < settings.maxThreads;
 			});
 
 			std::lock_guard<std::mutex> stateLock(stateMutex);
@@ -413,7 +331,7 @@ void Socket::accept(rd_kafka_message_t& rdkMessage, const esl::com::basic::serve
 
 	rd_kafka_message_destroy(&rdkMessage);
 
-	if(maxThreads > 0) {
+	if(settings.maxThreads > 0) {
 		{
 			std::lock_guard<std::mutex> stateLock(stateMutex);
 			--threadsRunning;

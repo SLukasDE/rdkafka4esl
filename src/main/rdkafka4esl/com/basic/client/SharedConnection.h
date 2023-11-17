@@ -7,11 +7,11 @@
 #include <esl/io/Input.h>
 #include <esl/io/Output.h>
 
-#include <vector>
-#include <string>
-#include <utility>
 #include <cstdint>
 #include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include <librdkafka/rdkafka.h>
 

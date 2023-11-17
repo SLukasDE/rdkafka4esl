@@ -16,12 +16,12 @@ namespace server {
 
 class ObjectContext final : public esl::object::Context {
 public:
+	void addObject(const std::string& id, std::unique_ptr<esl::object::Object> object) override;
 	std::set<std::string> getObjectIds() const override;
 
 protected:
 	esl::object::Object* findRawObject(const std::string& id) override;
 	const esl::object::Object* findRawObject(const std::string& id) const override;
-	void addRawObject(const std::string& id, std::unique_ptr<esl::object::Object> object) override;
 
 private:
 	std::map<std::string, std::unique_ptr<esl::object::Object>> objects;

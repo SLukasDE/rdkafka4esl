@@ -2,15 +2,14 @@
 #include <rdkafka4esl/com/basic/client/ConnectionFactory.h>
 #include <rdkafka4esl/com/basic/client/SharedConnectionFactory.h>
 #include <rdkafka4esl/com/basic/server/RequestContext.h>
-#include <rdkafka4esl/Logger.h>
+#include <esl/Logger.h>
 
 #include <esl/io/Consumer.h>
 #include <esl/system/Stacktrace.h>
 
-#include <string>
 #include <map>
 #include <stdexcept>
-#include <iostream>
+#include <string>
 
 namespace rdkafka4esl {
 namespace com {
@@ -18,44 +17,26 @@ namespace basic {
 namespace broker {
 
 namespace {
-Logger logger("rdkafka4esl::com::basic::broker::Client");
+esl::Logger logger("rdkafka4esl::com::basic::broker::Client");
+} /* anonymous namespace */
 
-std::vector<std::pair<std::string, std::string>> extractKafkaSettings(const std::vector<std::pair<std::string, std::string>>& aSettings) {
-	std::vector<std::pair<std::string, std::string>> kafkaSettings;
+Client::Client(const esl::object::KafkaClient::Settings& settings)
+: kafkaSettings(settings.kafkaSettings)
+{
 	bool hasGroupId = false;
 
-	for(auto& setting : aSettings) {
-		if(setting.first.size() > 6 && setting.first.substr(0, 6) == "kafka.") {
-			std::string kafkaKey = setting.first.substr(6);
-			if(kafkaKey == "group.id") {
-				hasGroupId = true;
-			}
-			kafkaSettings.emplace_back(kafkaKey, setting.second);
+	logger.debug << "Begin show kafka settings:\n";
+	for(const auto& setting : kafkaSettings) {
+		logger.debug << "- \"" << setting.first << "\"=\"" << setting.second << "\"\n";
+		if(setting.first == "kafka.group.id") {
+			hasGroupId = true;
 		}
 	}
+	logger.debug << "End show kafka settings.\n";
 
 	if(!hasGroupId) {
 		throw esl::system::Stacktrace::add(std::runtime_error("Value \"kafka.group.id\" not specified."));
 	}
-
-	return kafkaSettings;
-}
-
-} /* anonymous namespace */
-
-std::unique_ptr<esl::object::Object> Client::create(const std::vector<std::pair<std::string, std::string>>& settings) {
-//std::unique_ptr<esl::com::basic::broker::Interface::Client> Client::create(const std::vector<std::pair<std::string, std::string>>& settings) {
-	return std::unique_ptr<esl::object::Object>(new Client(settings));
-}
-
-Client::Client(const std::vector<std::pair<std::string, std::string>>& aSettings)
-: kafkaSettings(extractKafkaSettings(aSettings))
-{
-	logger.debug << "Begin show kafka settings:\n";
-	for(const auto& setting : kafkaSettings) {
-		logger.debug << "- \"" << setting.first << "\"=\"" << setting.second << "\"\n";
-	}
-	logger.debug << "End show kafka settings.\n";
 }
 
 Client::~Client() {

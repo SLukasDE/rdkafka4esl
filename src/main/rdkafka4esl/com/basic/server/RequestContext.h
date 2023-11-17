@@ -26,6 +26,7 @@ public:
 	esl::com::basic::server::Connection& getConnection() const override;
 	const Request& getRequest() const override;
 	esl::object::Context& getObjectContext() override;
+	const esl::object::Context& getObjectContext() const override;
 
 private:
 	const Socket& socket;
