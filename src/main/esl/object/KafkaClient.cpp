@@ -1,7 +1,7 @@
 #include <esl/object/KafkaClient.h>
 #include <esl/system/Stacktrace.h>
 
-#include <rdkafka4esl/com/basic/broker/Client.h>
+#include <rdkafka4esl/object/Client.h>
 
 #include <memory>
 #include <string>
@@ -24,7 +24,7 @@ KafkaClient::Settings::Settings(const std::vector<std::pair<std::string, std::st
 			kafkaSettings.emplace_back(kafkaKey, setting.second);
 		}
 		else {
-			throw std::runtime_error("Invalid parameter key \"" + setting.first + "\" for MemBuffer appender");
+			throw std::runtime_error("Invalid parameter key \"" + setting.first + "\" for Kafka client");
 		}
 	}
 
@@ -34,11 +34,19 @@ KafkaClient::Settings::Settings(const std::vector<std::pair<std::string, std::st
 }
 
 KafkaClient::KafkaClient(const Settings& settings)
-: object(new rdkafka4esl::com::basic::broker::Client(settings))
+: object(new rdkafka4esl::object::Client(settings))
 { }
 
 std::unique_ptr<Object> KafkaClient::create(const std::vector<std::pair<std::string, std::string>>& settings) {
 	return std::unique_ptr<Object>(new KafkaClient(Settings(settings)));
+}
+
+rdkafka4esl::object::Client& KafkaClient::getClient() {
+	rdkafka4esl::object::Client* client = dynamic_cast<rdkafka4esl::object::Client*>(object.get());
+	if(!client) {
+		throw esl::system::Stacktrace::add(std::runtime_error("client not available"));
+	}
+	return *client;
 }
 
 } /* namespace object */

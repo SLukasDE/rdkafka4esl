@@ -1,8 +1,8 @@
-#ifndef RDKAFKA4ESL_COM_BASIC_BROKER_CLIENT_H_
-#define RDKAFKA4ESL_COM_BASIC_BROKER_CLIENT_H_
+#ifndef RDKAFKA4ESL_OBJECT_CLIENT_H_
+#define RDKAFKA4ESL_OBJECT_CLIENT_H_
 
-#include <rdkafka4esl/com/basic/server/Socket.h>
 #include <rdkafka4esl/com/basic/client/ConnectionFactory.h>
+#include <rdkafka4esl/com/basic/server/Socket.h>
 
 #include <esl/object/KafkaClient.h>
 #include <esl/object/Object.h>
@@ -20,9 +20,7 @@
 #include <librdkafka/rdkafka.h>
 
 namespace rdkafka4esl {
-namespace com {
-namespace basic {
-namespace broker {
+namespace object {
 
 class Client final : public esl::object::Object {
 public:
@@ -36,11 +34,11 @@ public:
 	static rd_kafka_conf_t& createConfig(const std::vector<std::pair<std::string, std::string>>& kafkaSettings);
 	const std::vector<std::pair<std::string, std::string>>& getKafkaSettings() const;
 
-	void registerConnectionFactory(client::SharedConnectionFactory* sharedConnectionFactory);
-	void unregisterConnectionFactory(client::SharedConnectionFactory* sharedConnectionFactory);
+	void registerConnectionFactory(com::basic::client::SharedConnectionFactory* sharedConnectionFactory);
+	void unregisterConnectionFactory(com::basic::client::SharedConnectionFactory* sharedConnectionFactory);
 
-	void registerSocket(server::Socket* socket);
-	void unregisterSocket(server::Socket* socket);
+	void registerSocket(com::basic::server::Socket* socket);
+	void unregisterSocket(com::basic::server::Socket* socket);
 
 private:
 	std::vector<std::pair<std::string, std::string>> kafkaSettings;
@@ -59,17 +57,15 @@ private:
 	/* ****************** *
 	 * Producer variables *
 	 * ****************** */
-	std::set<client::SharedConnectionFactory*> connectionFactories;
+	std::set<com::basic::client::SharedConnectionFactory*> connectionFactories;
 
 	/* ****************** *
 	 * Consumer variables *
 	 * ****************** */
-	std::set<server::Socket*> sockets;
+	std::set<com::basic::server::Socket*> sockets;
 };
 
-} /* namespace broker */
-} /* namespace basic */
-} /* namespace com */
+} /* namespace object */
 } /* namespace rdkafka4esl */
 
-#endif /* RDKAFKA4ESL_COM_BASIC_BROKER_CLIENT_H_ */
+#endif /* RDKAFKA4ESL_OBJECT_CLIENT_H_ */

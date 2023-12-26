@@ -1,9 +1,9 @@
 #include <rdkafka4esl/com/basic/client/ConnectionFactory.h>
-#include <rdkafka4esl/com/basic/broker/Client.h>
+#include <rdkafka4esl/object/Client.h>
 
-#include <esl/utility/String.h>
-
+#include <esl/object/KafkaClient.h>
 #include <esl/system/Stacktrace.h>
+#include <esl/utility/String.h>
 
 #include <stdexcept>
 
@@ -25,7 +25,13 @@ ConnectionFactory::ConnectionFactory(const esl::com::basic::client::KafkaConnect
 }
 
 void ConnectionFactory::initializeContext(esl::object::Context& objectContext) {
-	broker::Client* client = objectContext.findObject<broker::Client>(settings.brokerId);
+	object::Client* client = objectContext.findObject<object::Client>(settings.brokerId);
+	if(client == nullptr) {
+		esl::object::KafkaClient* rdkafkaClient = objectContext.findObject<esl::object::KafkaClient>(settings.brokerId);
+		if(rdkafkaClient) {
+			client = &rdkafkaClient->getClient();
+		}
+	}
 	if(client == nullptr) {
     	throw esl::system::Stacktrace::add(std::runtime_error("Cannot find broker with id '" + settings.brokerId + "'"));
 	}

@@ -70,7 +70,7 @@ KafkaConnectionFactory::Settings::Settings(const std::vector<std::pair<std::stri
 	            throw esl::system::Stacktrace::add(std::runtime_error("multiple definition of attribute 'partition'."));
 			}
 			hasPartition = true;
-			partition = esl::utility::String::toInt(setting.second);
+			partition = esl::utility::String::toNumber<std::int32_t>(setting.second);
 		}
 		else {
 			throw esl::system::Stacktrace::add(std::runtime_error("Unknown key \"" + setting.first + "\""));

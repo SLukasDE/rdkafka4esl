@@ -1,10 +1,11 @@
 #include <rdkafka4esl/com/basic/server/Socket.h>
 #include <rdkafka4esl/com/basic/server/RequestContext.h>
-#include <rdkafka4esl/com/basic/broker/Client.h>
+#include <rdkafka4esl/object/Client.h>
 
 #include <esl/io/Input.h>
 #include <esl/io/Writer.h>
 #include <esl/Logger.h>
+#include <esl/object/KafkaClient.h>
 #include <esl/system/Stacktrace.h>
 #include <esl/utility/String.h>
 
@@ -33,7 +34,13 @@ Socket::~Socket() {
 
 void Socket::initializeContext(esl::object::Context& objectContext) {
 	if(settings.kafkaSettings.empty()) {
-		broker::Client* client = objectContext.findObject<broker::Client>(settings.brokerId);
+		object::Client* client = objectContext.findObject<object::Client>(settings.brokerId);
+		if(client == nullptr) {
+			esl::object::KafkaClient* rdkafkaClient = objectContext.findObject<esl::object::KafkaClient>(settings.brokerId);
+			if(rdkafkaClient) {
+				client = &rdkafkaClient->getClient();
+			}
+		}
 		if(client == nullptr) {
 	    	throw esl::system::Stacktrace::add(std::runtime_error("Cannot find broker with id '" + settings.brokerId + "'"));
 		}
@@ -71,7 +78,7 @@ void Socket::listen(const esl::com::basic::server::RequestHandler& requestHandle
 			topic = notification.substr(0, pos);
 			if(pos+1 < notification.size()) {
 				std::string partitionStr = notification.substr(pos+1);
-				partition = esl::utility::String::toInt(partitionStr);
+				partition = esl::utility::String::toNumber<decltype(partition)>(partitionStr);
 			}
 		}
 
@@ -103,7 +110,7 @@ void Socket::listen(const esl::com::basic::server::RequestHandler& requestHandle
 
 	/* Create Kafka consumer handle */
 	char errstr[512];
-	rdkConsumerHandle = rd_kafka_new(RD_KAFKA_CONSUMER, &broker::Client::createConfig(settings.kafkaSettings), errstr, sizeof(errstr));
+	rdkConsumerHandle = rd_kafka_new(RD_KAFKA_CONSUMER, &object::Client::createConfig(settings.kafkaSettings), errstr, sizeof(errstr));
 	if(rdkConsumerHandle == nullptr) {
 		rd_kafka_topic_partition_list_destroy(rdkTopicPartitionList);
 		rdkTopicPartitionList = nullptr;

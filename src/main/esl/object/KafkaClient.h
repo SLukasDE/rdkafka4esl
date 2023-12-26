@@ -8,6 +8,12 @@
 #include <utility>
 #include <vector>
 
+namespace rdkafka4esl {
+namespace object {
+class Client;
+} /* namespace object */
+} /* namespace rdkafka4esl */
+
 namespace esl {
 inline namespace v1_6 {
 namespace object {
@@ -22,6 +28,7 @@ public:
 	KafkaClient(const Settings& settings);
 
 	static std::unique_ptr<Object> create(const std::vector<std::pair<std::string, std::string>>& settings);
+	rdkafka4esl::object::Client& getClient();
 
 private:
 	std::unique_ptr<Object> object;

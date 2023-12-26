@@ -2,7 +2,7 @@
 #include <rdkafka4esl/com/basic/client/SharedConnection.h>
 #include <rdkafka4esl/com/basic/client/SharedConnectionFactory.h>
 #include <rdkafka4esl/com/basic/client/Connection.h>
-#include <rdkafka4esl/com/basic/broker/Client.h>
+#include <rdkafka4esl/object/Client.h>
 
 #include <esl/system/Stacktrace.h>
 
@@ -16,7 +16,7 @@ namespace com {
 namespace basic {
 namespace client {
 
-SharedConnectionFactory::SharedConnectionFactory(broker::Client& aClient, const std::vector<std::pair<std::string, std::string>>& aTopicSettings,
+SharedConnectionFactory::SharedConnectionFactory(object::Client& aClient, const std::vector<std::pair<std::string, std::string>>& aTopicSettings,
 		const std::string& aTopicName, const std::string& aKey, std::int32_t aPartition)
 : client(aClient),
   kafkaSettings(client.getKafkaSettings()),
@@ -48,7 +48,7 @@ std::unique_ptr<esl::com::basic::client::Connection> SharedConnectionFactory::cr
 	 * Create Producer Handle
 	 * *************************/
 
-	producerRdKafkaHandle = rd_kafka_new(RD_KAFKA_PRODUCER, &broker::Client::createConfig(kafkaSettings), errstr, sizeof(errstr));
+	producerRdKafkaHandle = rd_kafka_new(RD_KAFKA_PRODUCER, &object::Client::createConfig(kafkaSettings), errstr, sizeof(errstr));
 	if(producerRdKafkaHandle == nullptr) {
 		throw esl::system::Stacktrace::add(std::runtime_error(std::string("rd_kafka_new(RD_KAFKA_PRODUCER, ...) failed: ") + errstr));
 	}

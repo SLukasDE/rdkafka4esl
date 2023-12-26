@@ -13,11 +13,13 @@
 #include <vector>
 
 namespace rdkafka4esl {
-namespace com {
-namespace basic {
-namespace broker {
+
+namespace object {
 class Client;
 }
+
+namespace com {
+namespace basic {
 namespace client {
 
 class SharedConnection;
@@ -27,7 +29,7 @@ public:
 	// to call connectionRegister / connectionUnregister
 	friend class Connection;
 
-	SharedConnectionFactory(broker::Client& client, const std::vector<std::pair<std::string, std::string>>& topicSettings,
+	SharedConnectionFactory(object::Client& client, const std::vector<std::pair<std::string, std::string>>& topicSettings,
 			const std::string& topicName, const std::string& key, std::int32_t partition);
 	~SharedConnectionFactory();
 
@@ -41,7 +43,7 @@ public:
 	std::unique_ptr<esl::com::basic::client::Connection> createConnection(std::shared_ptr<SharedConnectionFactory> sharedConnectionFactory) const;
 
 private:
-	broker::Client& client;
+	object::Client& client;
 	const std::vector<std::pair<std::string, std::string>> kafkaSettings;
 	const std::vector<std::pair<std::string, std::string>> topicParameters;
 	const std::string topicName;

@@ -19,13 +19,13 @@
 #include <vector>
 
 namespace rdkafka4esl {
-namespace com {
-namespace basic {
 
-namespace broker {
+namespace object {
 class Client;
 }
 
+namespace com {
+namespace basic {
 namespace server {
 
 class Socket : public esl::com::basic::server::Socket, public esl::object::InitializeContext {
@@ -44,7 +44,7 @@ public:
 private:
 	esl::com::basic::server::KafkaSocket::Settings settings;
 
-	broker::Client* client = nullptr;
+	object::Client* client = nullptr;
 
 	std::function<void()> onReleasedHandler;
 

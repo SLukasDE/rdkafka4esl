@@ -1,10 +1,10 @@
-#include <rdkafka4esl/com/basic/broker/Client.h>
+#include <rdkafka4esl/object/Client.h>
 #include <rdkafka4esl/com/basic/client/ConnectionFactory.h>
 #include <rdkafka4esl/com/basic/client/SharedConnectionFactory.h>
 #include <rdkafka4esl/com/basic/server/RequestContext.h>
-#include <esl/Logger.h>
 
 #include <esl/io/Consumer.h>
+#include <esl/Logger.h>
 #include <esl/system/Stacktrace.h>
 
 #include <map>
@@ -12,12 +12,10 @@
 #include <string>
 
 namespace rdkafka4esl {
-namespace com {
-namespace basic {
-namespace broker {
+namespace object {
 
 namespace {
-esl::Logger logger("rdkafka4esl::com::basic::broker::Client");
+esl::Logger logger("rdkafka4esl::object::Client");
 } /* anonymous namespace */
 
 Client::Client(const esl::object::KafkaClient::Settings& settings)
@@ -28,7 +26,7 @@ Client::Client(const esl::object::KafkaClient::Settings& settings)
 	logger.debug << "Begin show kafka settings:\n";
 	for(const auto& setting : kafkaSettings) {
 		logger.debug << "- \"" << setting.first << "\"=\"" << setting.second << "\"\n";
-		if(setting.first == "kafka.group.id") {
+		if(setting.first == "group.id") {
 			hasGroupId = true;
 		}
 	}
@@ -143,12 +141,12 @@ const std::vector<std::pair<std::string, std::string>>& Client::getKafkaSettings
 	return kafkaSettings;
 }
 
-void Client::registerConnectionFactory(client::SharedConnectionFactory* sharedConnectionFactory) {
+void Client::registerConnectionFactory(com::basic::client::SharedConnectionFactory* sharedConnectionFactory) {
 	std::lock_guard<std::mutex> stateLock(stateMutex);
 	connectionFactories.insert(sharedConnectionFactory);
 }
 
-void Client::unregisterConnectionFactory(client::SharedConnectionFactory* sharedConnectionFactory) {
+void Client::unregisterConnectionFactory(com::basic::client::SharedConnectionFactory* sharedConnectionFactory) {
 	{
 		std::lock_guard<std::mutex> stateLock(stateMutex);
 		connectionFactories.erase(sharedConnectionFactory);
@@ -164,12 +162,12 @@ void Client::unregisterConnectionFactory(client::SharedConnectionFactory* shared
 	stateNotifyCondVar.notify_all();
 }
 
-void Client::registerSocket(server::Socket* socket) {
+void Client::registerSocket(com::basic::server::Socket* socket) {
 	std::lock_guard<std::mutex> stateLock(stateMutex);
 	sockets.insert(socket);
 }
 
-void Client::unregisterSocket(server::Socket* socket) {
+void Client::unregisterSocket(com::basic::server::Socket* socket) {
 	{
 		std::lock_guard<std::mutex> stateLock(stateMutex);
 		sockets.erase(socket);
@@ -185,7 +183,5 @@ void Client::unregisterSocket(server::Socket* socket) {
 	stateNotifyCondVar.notify_all();
 }
 
-} /* namespace broker */
-} /* namespace basic */
-} /* namespace com */
+} /* namespace object */
 } /* namespace rdkafka4esl */

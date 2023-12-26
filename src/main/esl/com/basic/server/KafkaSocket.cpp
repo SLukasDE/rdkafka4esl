@@ -47,7 +47,7 @@ KafkaSocket::Settings::Settings(const std::vector<std::pair<std::string, std::st
 			}
 			hasMaxThreads = true;
 
-			int i = esl::utility::String::toInt(setting.second);
+			int i = esl::utility::String::toNumber<int>(setting.second);
 			if(i < 0) {
 				throw esl::system::Stacktrace::add(std::runtime_error("Invalid negative value for \"" + setting.first + "\"=\"" + setting.second + "\""));
 			}
@@ -77,7 +77,7 @@ KafkaSocket::Settings::Settings(const std::vector<std::pair<std::string, std::st
 			}
 			hasPollTimeoutMs = true;
 
-			pollTimeoutMs = esl::utility::String::toInt(setting.second);
+			pollTimeoutMs = esl::utility::String::toNumber<decltype(pollTimeoutMs)>(setting.second);
 			if(pollTimeoutMs < 1) {
 				throw esl::system::Stacktrace::add(std::runtime_error("Invalid value \"" + setting.second + "\" for key '" + setting.first + "-ms'"));
 			}
